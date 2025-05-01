@@ -18,19 +18,36 @@ jobs:
           - deleteMessage
     steps:
       - uses: actions/checkout@v3
+
       - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      - name: Deploy Lambda with AWS CLI
-        env:
-          LAMBDA_NAME: ${{ matrix.lambda }}
+
+      - name: Zip Lambda
         run: |
           cd lambdas
-          zip -j ../${LAMBDA_NAME}.zip ${LAMBDA_NAME}.js
+          zip -j ../${{ matrix.lambda }}.zip ${{ matrix.lambda }}.js
           cd ..
-          aws lambda update-function-code \
-            --function-name $LAMBDA_NAME \
-            --zip-file fileb://$LAMBDA_NAME.zip
 
+      - name: Deploy Lambda (Create or Update)
+        run: |
+          set -e
+
+          EXISTS=$(aws lambda get-function --function-name ${{ matrix.lambda }} 2>/dev/null || true)
+
+          if [ -z "$EXISTS" ]; then
+            echo "Lambda does not exist. Creating..."
+            aws lambda create-function \
+              --function-name ${{ matrix.lambda }} \
+              --runtime nodejs18.x \
+              --role arn:aws:iam::<YOUR_ACCOUNT_ID>:role/<YOUR_EXECUTION_ROLE> \
+              --handler ${{ matrix.lambda }}.handler \
+              --zip-file fileb://${{ matrix.lambda }}.zip
+          else
+            echo "Lambda exists. Updating..."
+            aws lambda update-function-code \
+              --function-name ${{ matrix.lambda }} \
+              --zip-file fileb://${{ matrix.lambda }}.zip
+          fi
