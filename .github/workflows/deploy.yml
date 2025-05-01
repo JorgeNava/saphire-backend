@@ -43,7 +43,7 @@ jobs:
             aws lambda create-function \
               --function-name $LAMBDA_NAME \
               --runtime nodejs18.x \
-              --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_EXECUTION_ROLE }} \
+              --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }} \
               --handler ${{ matrix.lambda }}.handler \
               --zip-file fileb://$LAMBDA_NAME.zip \
               --region us-east-1
