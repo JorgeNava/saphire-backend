@@ -28,6 +28,10 @@ jobs:
           zip -j ${LAMBDA_NAME}.zip ./lambdas/${LAMBDA_NAME}.js
           aws lambda update-function-code \
             --function-name $LAMBDA_NAME \
-            --zip-file fileb://${LAMBDA_NAME}.zip
-        env:
-          LAMBDA_NAME: ${{ matrix.lambda }}
+            --zip-file fileb://${LAMBDA_NAME}.zip \
+          || aws lambda create-function \
+            --function-name $LAMBDA_NAME \
+            --runtime nodejs18.x \
+            --handler ${LAMBDA_NAME}.handler \
+            --zip-file fileb://${LAMBDA_NAME}.zip \
+            --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }}
