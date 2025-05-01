@@ -23,8 +23,11 @@ jobs:
           aws-access-key-id: \${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      - name: Deploy Lambda
-        uses: aws-actions/aws-lambda-deploy@v1
-        with:
-          function-name: \${{ matrix.lambda }}
-          zip-file: ./lambdas/\${{ matrix.lambda }}.js
+      - name: Deploy Lambda with AWS CLI
+        run: |
+          zip -j ${LAMBDA_NAME}.zip ./lambdas/${LAMBDA_NAME}.js
+          aws lambda update-function-code \
+            --function-name $LAMBDA_NAME \
+            --zip-file fileb://${LAMBDA_NAME}.zip
+        env:
+          LAMBDA_NAME: ${{ matrix.lambda }}
