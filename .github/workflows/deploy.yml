@@ -28,7 +28,7 @@ jobs:
       - name: Zip Lambda
         run: |
           cd lambdas
-          zip -j ../${{ matrix.lambda }}.zip ${{ matrix.lambda }}.js
+          zip -j ../saphire-${{ matrix.lambda }}.zip ${{ matrix.lambda }}.js
           cd ..
 
       - name: Deploy Lambda (Create or Update)
