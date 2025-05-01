@@ -24,14 +24,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
       - name: Deploy Lambda with AWS CLI
+        env:
+          LAMBDA_NAME: ${{ matrix.lambda }}
         run: |
-          zip -j ${LAMBDA_NAME}.zip ./lambdas/${LAMBDA_NAME}.js
+          cd lambdas
+          zip -j ../${LAMBDA_NAME}.zip ${LAMBDA_NAME}.js
+          cd ..
           aws lambda update-function-code \
             --function-name $LAMBDA_NAME \
-            --zip-file fileb://${LAMBDA_NAME}.zip \
-          || aws lambda create-function \
-            --function-name $LAMBDA_NAME \
-            --runtime nodejs18.x \
-            --handler ${LAMBDA_NAME}.handler \
-            --zip-file fileb://${LAMBDA_NAME}.zip \
-            --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }}
+            --zip-file fileb://$LAMBDA_NAME.zip
+
