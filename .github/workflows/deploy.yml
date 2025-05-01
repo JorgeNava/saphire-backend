@@ -42,7 +42,7 @@ jobs:
             aws lambda create-function \
               --function-name ${{ matrix.lambda }} \
               --runtime nodejs18.x \
-              --role arn:aws:iam::${AWS_ACCOUNT_ID}:role/${LAMBDA_EXECUTION_ROLE} \
+              --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_EXECUTION_ROLE }}
               --handler ${{ matrix.lambda }}.handler \
               --zip-file fileb://${{ matrix.lambda }}.zip
           else
