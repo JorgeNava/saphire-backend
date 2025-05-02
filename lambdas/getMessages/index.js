@@ -1,54 +1,74 @@
-const { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } = require('@aws-sdk/client-transcribe');
-const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
-const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb');
 
-const transcribe = new TranscribeClient();
 const dynamo = new DynamoDBClient();
-const s3 = new S3Client();
 
 exports.handler = async (event) => {
-  const { userId, s3AudioUrl, classification } = JSON.parse(event.body);
-  const jobName = `job-${Date.now()}`;
-  const timestamp = new Date().toISOString();
+  const params = event.queryStringParameters || {};
+  const { userId, classification, inputType, fromDate, toDate } = params;
 
-  await transcribe.send(new StartTranscriptionJobCommand({
-    TranscriptionJobName: jobName,
-    Media: { MediaFileUri: s3AudioUrl },
-    MediaFormat: "mp3",
-    LanguageCode: "en-US",
-    OutputBucketName: process.env.AUDIO_BUCKET
-  }));
-
-  let result;
-  while (true) {
-    const { TranscriptionJob } = await transcribe.send(new GetTranscriptionJobCommand({ TranscriptionJobName: jobName }));
-    if (TranscriptionJob.TranscriptionJobStatus === 'COMPLETED') {
-      result = TranscriptionJob.Transcript.TranscriptFileUri;
-      break;
-    }
-    await new Promise(r => setTimeout(r, 3000));
+  if (!userId) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing userId' }),
+    };
   }
 
-  const transcript = await fetch(result).then(res => res.json()).then(data => data.results.transcripts[0].transcript);
-  const messageId = jobName;
-
-  await dynamo.send(new PutItemCommand({
+  const queryParams = {
     TableName: process.env.DYNAMO_TABLE,
-    Item: {
-      userId: { S: userId },
-      timestamp: { S: timestamp },
-      messageId: { S: messageId },
-      inputType: { S: "audio" },
-      originalContent: { S: s3AudioUrl },
-      transcription: { S: transcript },
-      classification: { S: classification }
+    KeyConditionExpression: 'userId = :uid',
+    ExpressionAttributeValues: {
+      ':uid': { S: userId }
     }
-  }));
+  };
 
-  if (process.env.DELETE_AUDIO_AFTER_TRANSCRIBE === "true") {
-    const s3Key = s3AudioUrl.split('/').pop();
-    await s3.send(new DeleteObjectCommand({ Bucket: process.env.AUDIO_BUCKET, Key: s3Key }));
+  let filterExpressions = [];
+
+  if (classification) {
+    filterExpressions.push('classification = :cls');
+    queryParams.ExpressionAttributeValues[':cls'] = { S: classification };
   }
 
-  return { statusCode: 200, body: JSON.stringify({ messageId }) };
+  if (inputType) {
+    filterExpressions.push('inputType = :type');
+    queryParams.ExpressionAttributeValues[':type'] = { S: inputType };
+  }
+
+  if (fromDate) {
+    filterExpressions.push('timestamp >= :from');
+    queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
+  }
+
+  if (toDate) {
+    filterExpressions.push('timestamp <= :to');
+    queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
+  }
+
+  if (filterExpressions.length > 0) {
+    queryParams.FilterExpression = filterExpressions.join(' AND ');
+  }
+
+  try {
+    const result = await dynamo.send(new QueryCommand(queryParams));
+
+    const messages = result.Items.map(item => ({
+      userId: item.userId.S,
+      timestamp: item.timestamp.S,
+      messageId: item.messageId.S,
+      inputType: item.inputType.S,
+      originalContent: item.originalContent.S,
+      classification: item.classification?.S,
+      transcription: item.transcription?.S,
+    }));
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ messages }),
+    };
+  } catch (error) {
+    console.error("DynamoDB error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Error fetching messages' }),
+    };
+  }
 };

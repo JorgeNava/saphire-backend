@@ -1,9 +1,10 @@
 {
-  "name": "saveTextMessage",
+  "name": "getMessages",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.541.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "node-fetch": "^2.6.7"
   }
 }
