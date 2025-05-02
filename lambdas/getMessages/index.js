@@ -4,7 +4,7 @@ const dynamo = new DynamoDBClient();
 
 exports.handler = async (event) => {
   const params = event.queryStringParameters || {};
-  const { userId, classification, inputType, fromDate, toDate } = params;
+  const { userId, classification, inputType, fromDate, toDate, usedAI } = params;
 
   if (!userId) {
     return {
@@ -47,6 +47,11 @@ exports.handler = async (event) => {
     queryParams.FilterExpression = filterExpressions.join(' AND ');
   }
 
+  if (usedAI !== undefined) {
+    filterExpressions.push('usedAI = :used');
+    queryParams.ExpressionAttributeValues[':used'] = { BOOL: usedAI === 'true' || usedAI === 'True' };
+  }
+
   try {
     const result = await dynamo.send(new QueryCommand(queryParams));
 
@@ -58,6 +63,7 @@ exports.handler = async (event) => {
       originalContent: item.originalContent.S,
       classification: item.classification?.S,
       transcription: item.transcription?.S,
+      usedAI: item.usedAI?.BOOL,
     }));
 
     return {
