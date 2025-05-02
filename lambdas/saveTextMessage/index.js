@@ -1,14 +1,64 @@
 const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 const { v4: uuidv4 } = require('uuid');
+const fetch = require('node-fetch');
 
 const client = new DynamoDBClient();
 
-exports.handler = async (event) => {
-  console.log("RAW EVENT:", JSON.stringify(event)); // <-- esto es clave
+const predefinedCategories = [
+  "ideas",
+  "tareas",
+  "recordatorios",
+  "reflexiones",
+  "pendientes",
+  "lugares por visitar",
+  "sueños",
+  "metas",
+  "hobbies",
+  "programación",
+  "musica",
+  "sobre mi vida y personalidad",
+  "relaciones amorosas",
+  "libros por leer"
+];
 
+async function classifyWithAI(text) {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `Eres un clasificador de notas. Las categorías válidas son: ${predefinedCategories.join(", ")}. Si no hay una categoría adecuada, sugiere una nueva en una sola palabra. Solo responde con la categoría.`
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ],
+      max_tokens: 10
+    })
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content.trim().toLowerCase();
+}
+
+exports.handler = async (event) => {
   const { userId, text, classification } = JSON.parse(event.body);
   const messageId = uuidv4();
   const timestamp = new Date().toISOString();
+
+  let finalClassification = classification;
+
+  if (!classification || classification.trim() === "") {
+    const suggested = await classifyWithAI(text);
+    finalClassification = suggested;
+  }
 
   const params = {
     TableName: process.env.DYNAMO_TABLE,
@@ -18,11 +68,17 @@ exports.handler = async (event) => {
       messageId: { S: messageId },
       inputType: { S: "text" },
       originalContent: { S: text },
-      classification: { S: classification }
+      classification: { S: finalClassification }
     }
   };
 
   await client.send(new PutItemCommand(params));
 
-  return { statusCode: 200, body: JSON.stringify({ messageId }) };
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      messageId,
+      classification: finalClassification
+    })
+  };
 };

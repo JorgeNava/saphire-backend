@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.541.0"
+    "@aws-sdk/client-dynamodb": "^3.541.0",
+    "node-fetch": "^2.6.7"
   }
 }
