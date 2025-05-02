@@ -33,16 +33,14 @@ exports.handler = async (event) => {
     queryParams.ExpressionAttributeValues[':type'] = { S: inputType };
   }
 
-  if (fromDate || toDate) {
-    queryParams.ExpressionAttributeNames = { '#ts': 'timestamp' };
-    if (fromDate) {
-      filterExpressions.push('#ts >= :from');
-      queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
-    }
-    if (toDate) {
-      filterExpressions.push('#ts <= :to');
-      queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
-    }
+  if (fromDate) {
+    filterExpressions.push('timestamp >= :from');
+    queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
+  }
+
+  if (toDate) {
+    filterExpressions.push('timestamp <= :to');
+    queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
   }
 
   if (usedAI !== undefined) {
@@ -66,7 +64,8 @@ exports.handler = async (event) => {
       classification: item.classification?.S,
       transcription: item.transcription?.S,
       usedAI: item.usedAI?.BOOL,
-    }));
+    }))
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
     return {
       statusCode: 200,
