@@ -65,10 +65,12 @@ exports.handler = async (event) => {
   const timestamp = new Date().toISOString();
 
   let finalClassification = classification;
+  let usedAI = false;
 
   if (!classification || classification.trim() === "") {
     const suggested = await classifyWithAI(text);
     finalClassification = suggested;
+    usedAI = true;
   }
 
   const params = {
@@ -79,7 +81,8 @@ exports.handler = async (event) => {
       messageId: { S: messageId },
       inputType: { S: "text" },
       originalContent: { S: text },
-      classification: { S: finalClassification }
+      classification: { S: finalClassification },
+      usedAI: { BOOL: usedAI }
     }
   };
 
