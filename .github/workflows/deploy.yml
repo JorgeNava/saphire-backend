@@ -28,17 +28,10 @@ jobs:
       - name: Prepare and Zip Lambda
         run: |
           mkdir -p build/${{ matrix.lambda }}
-          cp lambdas/${{ matrix.lambda }}.js build/${{ matrix.lambda }}/index.js
-
-          # Si hay package.json por función, cópialo
-          if [ -f "lambdas/${{ matrix.lambda }}/package.json" ]; then
-            cp lambdas/${{ matrix.lambda }}/package.json build/${{ matrix.lambda }}/
-            cd build/${{ matrix.lambda }}
-            npm install
-            cd -
-          fi
+          cp -r lambdas/${{ matrix.lambda }}/* build/${{ matrix.lambda }}/
 
           cd build/${{ matrix.lambda }}
+          npm install --omit=dev
           zip -r ../../saphire-${{ matrix.lambda }}.zip .
           cd -
 
