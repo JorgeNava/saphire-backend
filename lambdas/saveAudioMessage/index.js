@@ -162,7 +162,6 @@ exports.handler = async (event) => {
         messageId:       { S: messageId },
         inputType:       { S: "audio" },
         originalContent: { S: text },
-        s3Key:           { S: s3Key },
         classification:  { S: finalClassification },
         usedAI:          { BOOL: usedAI }
       }
