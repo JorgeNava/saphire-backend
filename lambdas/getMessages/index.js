@@ -18,9 +18,6 @@ exports.handler = async (event) => {
     KeyConditionExpression: 'userId = :uid',
     ExpressionAttributeValues: {
       ':uid': { S: userId }
-    },
-    ExpressionAttributeNames: {
-      '#ts': 'timestamp'
     }
   };
 
@@ -36,14 +33,16 @@ exports.handler = async (event) => {
     queryParams.ExpressionAttributeValues[':type'] = { S: inputType };
   }
 
-  if (fromDate) {
-    filterExpressions.push('#ts >= :from');
-    queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
-  }
-
-  if (toDate) {
-    filterExpressions.push('#ts <= :to');
-    queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
+  if (fromDate || toDate) {
+    queryParams.ExpressionAttributeNames = { '#ts': 'timestamp' };
+    if (fromDate) {
+      filterExpressions.push('#ts >= :from');
+      queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
+    }
+    if (toDate) {
+      filterExpressions.push('#ts <= :to');
+      queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
+    }
   }
 
   if (usedAI !== undefined) {
