@@ -36,7 +36,7 @@ jobs:
           zip -r ../../saphire-${{ matrix.lambda }}.zip .
           cd -
 
-      - name: Deploy or Update Lambda
+      - name: Deploy Lambda (Create or Update)
         run: |
           set -e
           LAMBDA_NAME="saphire-${{ matrix.lambda }}"
@@ -54,11 +54,15 @@ jobs:
               --region us-east-1 \
               --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
           else
-            echo "Lambda exists. Updating code, env vars and handler..."
+            echo "Lambda exists. Updating code..."
             aws lambda update-function-code \
               --function-name $LAMBDA_NAME \
               --zip-file fileb://saphire-${{ matrix.lambda }}.zip
 
+            echo "Waiting for AWS to apply code update..."
+            sleep 10
+
+            echo "Updating handler and env vars..."
             aws lambda update-function-configuration \
               --function-name $LAMBDA_NAME \
               --handler index.handler \
