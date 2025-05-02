@@ -18,7 +18,12 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"userId\": \"user123\",\n  \"text\": \"Esta es una nota desde la app\",\n  \"classification\": \"ideas\"\n}"
+					"raw": "{\n  \"userId\": \"user123\",\n  \"text\": \"Anota comprar libro cracking the coding interview para leer\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
 				},
 				"url": {
 					"raw": "{{API_URL}}/text",
@@ -90,7 +95,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/messages?userId=user123",
+					"raw": "{{API_URL}}/messages?userId=user123&dateFrom=2025-05-01T00:00:00Z&dateTo=2025-05-03T23:59:59Z",
 					"host": [
 						"{{API_URL}}"
 					],
@@ -99,8 +104,26 @@
 					],
 					"query": [
 						{
+							"key": "classification",
+							"value": "libros por leer",
+							"disabled": true
+						},
+						{
+							"key": "usedAI",
+							"value": "false",
+							"disabled": true
+						},
+						{
 							"key": "userId",
 							"value": "user123"
+						},
+						{
+							"key": "dateFrom",
+							"value": "2025-05-01T00:00:00Z"
+						},
+						{
+							"key": "dateTo",
+							"value": "2025-05-03T23:59:59Z"
 						}
 					]
 				}
@@ -184,7 +207,7 @@
 	"variable": [
 		{
 			"key": "API_URL",
-			"value": "localhost:9008",
+			"value": "https://vc3vjicxs9.execute-api.us-east-1.amazonaws.com/dev",
 			"type": "string"
 		}
 	]
