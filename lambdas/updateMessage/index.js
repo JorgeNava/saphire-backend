@@ -1,5 +1,5 @@
 /**
- * Lambda: Update message record (classification, summary, transcription)
+ * Lambda: Update message record (classification, inputType, originalContent, usedAI)
  * Runtime: AWS Node.js 18.x
  */
 
@@ -9,11 +9,10 @@ const {
   UpdateItemCommand,
 } = require('@aws-sdk/client-dynamodb');
 
-const REGION        = process.env.AWS_REGION || 'us-east-1';
-const DYNAMO_TABLE  = process.env.DYNAMO_TABLE;
+const REGION       = process.env.AWS_REGION || 'us-east-1';
+const DYNAMO_TABLE = process.env.DYNAMO_TABLE;
 
 if (!DYNAMO_TABLE) {
-  // Falla rápido en tiempo de inicio si falta la tabla
   throw new Error('Environment variable DYNAMO_TABLE must be defined.');
 }
 
@@ -21,7 +20,7 @@ const dynamo = new DynamoDBClient({ region: REGION });
 
 exports.handler = async (event) => {
   try {
-    // --- Validaciones básicas ------------------------------------------------
+    /* ---------- Validaciones básicas ---------- */
     const messageId = event?.pathParameters?.messageId;
     if (!messageId) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing path parameter messageId' }) };
@@ -38,18 +37,44 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON body' }) };
     }
 
-    const {
-      userId,
-      classification = '',
-      summary        = '',
-      transcription  = '',
-    } = body;
-
+    const { userId, ...payload } = body;
     if (!userId) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing userId' }) };
     }
 
-    // --- 1. Obtener el mensaje ------------------------------------------------
+    /* ---------- Campos permitidos ---------- */
+    const allowed = {
+      classification: 'S',
+      inputType:      'S',
+      originalContent:'S',
+      usedAI:         'BOOL',   // boolean
+    };
+
+    /* ---------- Construir UpdateExpression dinámico ---------- */
+    const setParts = [];
+    const exprAttrValues = {};
+
+    Object.entries(payload).forEach(([key, value]) => {
+      if (allowed[key] !== undefined && value !== undefined) {
+        const placeholder = `:${key}`;
+        setParts.push(`${key} = ${placeholder}`);
+        exprAttrValues[placeholder] =
+          allowed[key] === 'BOOL' ? { BOOL: Boolean(value) } : { S: String(value) };
+      }
+    });
+
+    // Agrega/actualiza lastUpdated con el timestamp actual
+    const nowIso = new Date().toISOString();
+    setParts.push('lastUpdated = :lu');
+    exprAttrValues[':lu'] = { S: nowIso };
+
+    if (setParts.length === 1) {          // solo lastUpdated => nada que cambiar
+      return { statusCode: 400, body: JSON.stringify({ error: 'No updatable fields supplied' }) };
+    }
+
+    const updateExpression = `SET ${setParts.join(', ')}`;
+
+    /* ---------- 1. Obtener el registro ---------- */
     const queryRes = await dynamo.send(
       new QueryCommand({
         TableName: DYNAMO_TABLE,
@@ -65,9 +90,9 @@ exports.handler = async (event) => {
       return { statusCode: 404, body: JSON.stringify({ error: 'Message not found' }) };
     }
 
-    const timestamp = item.timestamp.S;
+    const timestamp = item.timestamp.S;   // sort key permanece intacto
 
-    // --- 2. Actualizar registro ----------------------------------------------
+    /* ---------- 2. Ejecutar UpdateItem ---------- */
     await dynamo.send(
       new UpdateItemCommand({
         TableName: DYNAMO_TABLE,
@@ -75,16 +100,12 @@ exports.handler = async (event) => {
           userId:   { S: userId },
           timestamp:{ S: timestamp },
         },
-        UpdateExpression: 'SET classification = :c, summary = :s, transcription = :t',
-        ExpressionAttributeValues: {
-          ':c': { S: classification },
-          ':s': { S: summary },
-          ':t': { S: transcription },
-        },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: exprAttrValues,
       }),
     );
 
-    // --- 3. Respuesta ---------------------------------------------------------
+    /* ---------- 3. Respuesta ---------- */
     return { statusCode: 200, body: JSON.stringify({ message: 'Updated' }) };
   } catch (err) {
     console.error('Error updating message:', err);
