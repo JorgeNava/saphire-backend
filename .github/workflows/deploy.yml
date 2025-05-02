@@ -11,7 +11,7 @@ jobs:
       matrix:
         lambda:
           - saveTextMessage
-          - processAudioMessage
+          - saveAudioMessage
           - generateUploadUrl
           - getMessages
           - getMessage

@@ -37,7 +37,7 @@ saphire-backend/
 │   ├── deleteMessage.js 
 │   ├── generateUploadUrl.js 
 │   ├── getMessages.js 
-│   ├── processAudioMessage.js 
+│   ├── saveAudioMessage.js 
 │   ├── saveTextMessage.js 
 │   └── updateMessage.js 
 └── README.md
@@ -88,7 +88,7 @@ Todos los endpoints están expuestos vía Amazon API Gateway:
 |--------|-----------------------------|------------------------------|
 | POST   | `/text`                     | `saveTextMessage`           |
 | POST   | `/generate-upload-url`      | `generateUploadUrl`         |
-| POST   | `/audio`                    | `processAudioMessage`       |
+| POST   | `/audio`                    | `saveAudioMessage`       |
 | GET    | `/messages`                 | `getMessages`               |
 | PUT    | `/messages/{messageId}`     | `updateMessage`             |
 | DELETE | `/messages/{messageId}`     | `deleteMessage`             |
