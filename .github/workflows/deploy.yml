@@ -27,6 +27,7 @@ jobs:
 
       - name: Prepare and Zip Lambda
         run: |
+          rm -rf build/${{ matrix.lambda }}
           mkdir -p build/${{ matrix.lambda }}
           cp -r lambdas/${{ matrix.lambda }}/* build/${{ matrix.lambda }}/
 
@@ -35,7 +36,7 @@ jobs:
           zip -r ../../saphire-${{ matrix.lambda }}.zip .
           cd -
 
-      - name: Deploy Lambda (Create or Update)
+      - name: Deploy or Update Lambda
         run: |
           set -e
           LAMBDA_NAME="saphire-${{ matrix.lambda }}"
@@ -53,10 +54,15 @@ jobs:
               --region us-east-1 \
               --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
           else
-            echo "Lambda exists. Updating..."
+            echo "Lambda exists. Updating code, env vars and handler..."
             aws lambda update-function-code \
               --function-name $LAMBDA_NAME \
               --zip-file fileb://saphire-${{ matrix.lambda }}.zip
+
+            aws lambda update-function-configuration \
+              --function-name $LAMBDA_NAME \
+              --handler index.handler \
+              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
           fi
 
       - name: Clean ZIP and build
