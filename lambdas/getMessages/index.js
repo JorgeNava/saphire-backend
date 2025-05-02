@@ -4,7 +4,7 @@ const dynamo = new DynamoDBClient();
 
 exports.handler = async (event) => {
   const params = event.queryStringParameters || {};
-  const { userId, classification, inputType, fromDate, toDate, usedAI } = params;
+  const { userId, classification, inputType, dateFrom, dateTo, usedAI } = params;
 
   if (!userId) {
     return {
@@ -21,7 +21,14 @@ exports.handler = async (event) => {
     }
   };
 
-  const filterExpressions = [];
+  if (dateFrom && dateTo) {
+    queryParams.KeyConditionExpression = 'userId = :uid AND #ts BETWEEN :from AND :to';
+    queryParams.ExpressionAttributeValues[':from'] = { S: dateFrom };
+    queryParams.ExpressionAttributeValues[':to'] = { S: dateTo };
+    queryParams.ExpressionAttributeNames = { '#ts': 'timestamp' };
+  }
+
+  let filterExpressions = [];
 
   if (classification) {
     filterExpressions.push('classification = :cls');
@@ -31,16 +38,6 @@ exports.handler = async (event) => {
   if (inputType) {
     filterExpressions.push('inputType = :type');
     queryParams.ExpressionAttributeValues[':type'] = { S: inputType };
-  }
-
-  if (fromDate) {
-    filterExpressions.push('timestamp >= :from');
-    queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
-  }
-
-  if (toDate) {
-    filterExpressions.push('timestamp <= :to');
-    queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
   }
 
   if (usedAI !== undefined) {
@@ -64,8 +61,7 @@ exports.handler = async (event) => {
       classification: item.classification?.S,
       transcription: item.transcription?.S,
       usedAI: item.usedAI?.BOOL,
-    }))
-    .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    }));
 
     return {
       statusCode: 200,
