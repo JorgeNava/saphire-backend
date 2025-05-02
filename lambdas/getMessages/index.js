@@ -39,16 +39,16 @@ exports.handler = async (event) => {
       };
     }
 
-    // Base query sobre la PK
+    // 1) Base query sobre la PK
     const queryParams = {
-      TableName: process.env.DYNAMO_TABLE,
+      TableName: DYNAMO_TABLE,
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: {
         ':uid': { S: userId }
       }
     };
 
-    // Si se piden rangos de timestamp (creación)
+    // 2) Rango de timestamp (creación)
     if (dateFrom && dateTo) {
       queryParams.KeyConditionExpression = 
         'userId = :uid AND #ts BETWEEN :from AND :to';
@@ -57,41 +57,43 @@ exports.handler = async (event) => {
       queryParams.ExpressionAttributeNames = { '#ts': 'timestamp' };
     }
 
-    // Filtros adicionales
+    // 3) Filtros adicionales y manejo de ExpressionAttributeNames dinámico
     const filterExpressions = [];
-    queryParams.ExpressionAttributeNames = queryParams.ExpressionAttributeNames || {};
+    const attrNames = {}; 
 
-    // Rangos de lastUpdated (actualización)
     if (lastUpdatedFrom && lastUpdatedTo) {
       filterExpressions.push('#lu BETWEEN :luFrom AND :luTo');
+      attrNames['#lu'] = 'lastUpdated';
       queryParams.ExpressionAttributeValues[':luFrom'] = { S: lastUpdatedFrom };
       queryParams.ExpressionAttributeValues[':luTo']   = { S: lastUpdatedTo };
-      queryParams.ExpressionAttributeNames['#lu'] = 'lastUpdated';
     }
-
     if (classification) {
       filterExpressions.push('classification = :cls');
       queryParams.ExpressionAttributeValues[':cls'] = { S: classification };
     }
-
     if (inputType) {
       filterExpressions.push('inputType = :type');
       queryParams.ExpressionAttributeValues[':type'] = { S: inputType };
     }
-
     if (usedAI !== undefined) {
       filterExpressions.push('usedAI = :used');
       queryParams.ExpressionAttributeValues[':used'] = { BOOL: usedAI === 'true' };
     }
 
-    if (filterExpressions.length > 0) {
+    if (filterExpressions.length) {
       queryParams.FilterExpression = filterExpressions.join(' AND ');
+      if (Object.keys(attrNames).length) {
+        queryParams.ExpressionAttributeNames = {
+          ...(queryParams.ExpressionAttributeNames || {}),
+          ...attrNames
+        };
+      }
     }
 
-    // Ejecución de la consulta
+    // 4) Ejecutar consulta
     const result = await dynamo.send(new QueryCommand(queryParams));
 
-    // Mapear resultados
+    // 5) Mapear y devolver resultados
     const messages = result.Items.map(item => ({
       userId:          item.userId.S,
       timestamp:       item.timestamp.S,
