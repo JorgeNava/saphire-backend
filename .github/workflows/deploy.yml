@@ -50,7 +50,7 @@ jobs:
               --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }} \
               --handler index.handler \
               --zip-file fileb://saphire-${{ matrix.lambda }}.zip \
-              --region us-east-1
+              --region us-east-1 \
               --environment Variables="{AWS_REGION=${{ secrets.AWS_REGION }},DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }}}"
           else
             echo "Lambda exists. Updating..."
