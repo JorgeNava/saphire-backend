@@ -16,7 +16,6 @@ jobs:
           - getMessages
           - updateMessage
           - deleteMessage
-
     steps:
       - uses: actions/checkout@v3
 
@@ -30,11 +29,18 @@ jobs:
         run: |
           mkdir -p build/${{ matrix.lambda }}
           cp lambdas/${{ matrix.lambda }}.js build/${{ matrix.lambda }}/index.js
+
+          # Si hay package.json por función, cópialo
+          if [ -f "lambdas/${{ matrix.lambda }}/package.json" ]; then
+            cp lambdas/${{ matrix.lambda }}/package.json build/${{ matrix.lambda }}/
+            cd build/${{ matrix.lambda }}
+            npm install
+            cd -
+          fi
+
           cd build/${{ matrix.lambda }}
-          npm init -y > /dev/null
-          npm install uuid @aws-sdk/client-dynamodb > /dev/null
-          zip -r ../../saphire-${{ matrix.lambda }}.zip .  # <-- corregido
-          cd ../../
+          zip -r ../../saphire-${{ matrix.lambda }}.zip .
+          cd -
 
       - name: Deploy Lambda (Create or Update)
         run: |
@@ -50,15 +56,16 @@ jobs:
               --runtime nodejs18.x \
               --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }} \
               --handler index.handler \
-              --zip-file fileb://$LAMBDA_NAME.zip \
+              --zip-file fileb://saphire-${{ matrix.lambda }}.zip \
               --region us-east-1
           else
             echo "Lambda exists. Updating..."
             aws lambda update-function-code \
               --function-name $LAMBDA_NAME \
-              --zip-file fileb://$LAMBDA_NAME.zip
+              --zip-file fileb://saphire-${{ matrix.lambda }}.zip
           fi
 
       - name: Clean ZIP and build
         run: |
-          rm -rf saphire-${{ matrix.lambda }}.zip build/
+          rm -rf saphire-${{ matrix.lambda }}.zip
+          rm -rf build/${{ matrix.lambda }}
