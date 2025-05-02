@@ -5,20 +5,20 @@ const fetch = require('node-fetch');
 const client = new DynamoDBClient();
 
 const predefinedCategories = [
-  "ideas",
-  "tareas",
-  "recordatorios",
-  "reflexiones",
-  "pendientes",
-  "lugares por visitar",
-  "sueños",
-  "metas",
-  "hobbies",
+  "libros por leer",
   "programación",
   "musica",
   "sobre mi vida y personalidad",
   "relaciones amorosas",
-  "libros por leer"
+  "lugares por visitar",
+  "sueños",
+  "metas",
+  "reflexiones",
+  "hobbies",
+  "ideas",
+  "recordatorios",
+  "pendientes",
+  "tareas"
 ];
 
 async function classifyWithAI(text) {

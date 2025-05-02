@@ -49,7 +49,7 @@ exports.handler = async (event) => {
 
   if (usedAI !== undefined) {
     filterExpressions.push('usedAI = :used');
-    queryParams.ExpressionAttributeValues[':used'] = { BOOL: usedAI === 'true' || usedAI === 'True' };
+    queryParams.ExpressionAttributeValues[':used'] = { BOOL: usedAI === 'true' };
   }
 
   try {
