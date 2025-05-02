@@ -18,10 +18,13 @@ exports.handler = async (event) => {
     KeyConditionExpression: 'userId = :uid',
     ExpressionAttributeValues: {
       ':uid': { S: userId }
+    },
+    ExpressionAttributeNames: {
+      '#ts': 'timestamp'
     }
   };
 
-  let filterExpressions = [];
+  const filterExpressions = [];
 
   if (classification) {
     filterExpressions.push('classification = :cls');
@@ -34,22 +37,22 @@ exports.handler = async (event) => {
   }
 
   if (fromDate) {
-    filterExpressions.push('timestamp >= :from');
+    filterExpressions.push('#ts >= :from');
     queryParams.ExpressionAttributeValues[':from'] = { S: fromDate };
   }
 
   if (toDate) {
-    filterExpressions.push('timestamp <= :to');
+    filterExpressions.push('#ts <= :to');
     queryParams.ExpressionAttributeValues[':to'] = { S: toDate };
-  }
-
-  if (filterExpressions.length > 0) {
-    queryParams.FilterExpression = filterExpressions.join(' AND ');
   }
 
   if (usedAI !== undefined) {
     filterExpressions.push('usedAI = :used');
     queryParams.ExpressionAttributeValues[':used'] = { BOOL: usedAI === 'true' };
+  }
+
+  if (filterExpressions.length > 0) {
+    queryParams.FilterExpression = filterExpressions.join(' AND ');
   }
 
   try {
