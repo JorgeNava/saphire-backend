@@ -45,7 +45,6 @@ saphire-backend/
 
 ## 🔐 Variables de entorno (.env)
 ```
-AWS_REGION=us-east-1
 DYNAMO_TABLE=UserMessages
 AUDIO_BUCKET=saphire-audio-notes
 DELETE_AUDIO_AFTER_TRANSCRIBE=true
