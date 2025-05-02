@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const client = new DynamoDBClient();
 
 exports.handler = async (event) => {
-  console.log("EVENT BODY:", event.body);
+  console.log("RAW EVENT:", JSON.stringify(event)); // <-- esto es clave
 
   const { userId, text, classification } = JSON.parse(event.body);
   const messageId = uuidv4();
