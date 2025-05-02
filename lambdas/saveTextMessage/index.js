@@ -29,7 +29,7 @@ async function classifyWithAI(text) {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      "model": "gpt-4-turbo",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
@@ -45,6 +45,17 @@ async function classifyWithAI(text) {
   });
 
   const data = await response.json();
+
+  if (!response.ok) {
+    console.error("OpenAI API error:", data);
+    throw new Error(`OpenAI API Error: ${data.error?.message || "Unknown error"}`);
+  }
+
+  if (!data.choices || !data.choices[0]?.message?.content) {
+    console.error("Invalid OpenAI response:", JSON.stringify(data));
+    throw new Error("Invalid response structure from OpenAI API");
+  }
+
   return data.choices[0].message.content.trim().toLowerCase();
 }
 
