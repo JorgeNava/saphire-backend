@@ -7,179 +7,304 @@
 	},
 	"item": [
 		{
-			"name": "Save Text Message",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"userId\": \"user123\",\n  \"text\": \"Anota comprar libro cracking the coding interview para leer\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Messages",
+			"item": [
+				{
+					"name": "Save Text Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"text\": \"Quiero ver la muralla china\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/text",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"text"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{API_URL}}/text",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"text"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Generate Upload URL",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"fileName\": \"audio-168754839.mp3\",\n  \"contentType\": \"audio/mpeg\"\n}"
-				},
-				"url": {
-					"raw": "{{API_URL}}/generate-upload-url",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"generate-upload-url"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Process Audio Message",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"userId\": \"user123\",\n  \"s3AudioUrl\": \"https://saphire-audio-notes.s3.amazonaws.com/audio-168754839.mp3\",\n  \"classification\": \"recordatorios\"\n}"
-				},
-				"url": {
-					"raw": "{{API_URL}}/audio",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"audio"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Messages",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{API_URL}}/messages?userId=user123&dateFrom=2025-05-01T00:00:00Z&dateTo=2025-05-03T23:59:59Z",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"messages"
-					],
-					"query": [
-						{
-							"key": "classification",
-							"value": "libros por leer",
-							"disabled": true
+				{
+					"name": "Save Audio Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"s3Key\": \"c6def45d-fd0a-4ce1-9831-6ad86b6f73ee.mp3\"\n}"
 						},
-						{
-							"key": "usedAI",
-							"value": "false",
-							"disabled": true
-						},
-						{
-							"key": "userId",
-							"value": "user123"
-						},
-						{
-							"key": "dateFrom",
-							"value": "2025-05-01T00:00:00Z"
-						},
-						{
-							"key": "dateTo",
-							"value": "2025-05-03T23:59:59Z"
+						"url": {
+							"raw": "{{API_URL}}/audio",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"audio"
+							]
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update Message",
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"userId\": \"user123\",\n  \"classification\": \"tareas\",\n  \"transcription\": \"Este es el nuevo texto\",\n  \"summary\": \"Resumen actualizado\"\n}"
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{API_URL}}/messages/123e4567-e89b-12d3-a456-426614174000",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"messages",
-						"123e4567-e89b-12d3-a456-426614174000"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete Message",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{API_URL}}/messages/123e4567-e89b-12d3-a456-426614174000?userId=user123",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"messages",
-						"123e4567-e89b-12d3-a456-426614174000"
-					],
-					"query": [
-						{
-							"key": "userId",
-							"value": "user123"
+				{
+					"name": "Generate Upload URL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/generate-upload-url",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"generate-upload-url"
+							]
 						}
-					]
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Audio File",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "audio/mpeg",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "/Users/jorge.nava/Downloads/WhatsApp Ptt 2025-05-02 at 3.42.07 PM.mp3"
+							}
+						},
+						"url": {
+							"raw": "https://ai-notes-audio.s3.us-east-1.amazonaws.com/c6def45d-fd0a-4ce1-9831-6ad86b6f73ee.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAWVEMKZUEF6WYQE63%2F20250502%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250502T222823Z&X-Amz-Expires=300&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEcaCXVzLWVhc3QtMSJGMEQCIFk0qzSKbQPS9bwAGa6Ekel2M7dzxD2L9ffs4ZS3xxmSAiBtela%2BykKCFlnEfVOwRZkBd6W820xMc%2BlqkLz%2B5TXKZiqPAwjg%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDQ1NzcwODMyNjE1MiIMDbU8Rw5rgdrEko2NKuMCGo4Lp9T6aSzChGjg3RduJt9Qcm6HKKivQNEkG9KGAcOTvWGUN34uKfZxR2keTUfPE1Qtqosxh8jUI75310ANxuKCKbNn62bY726Sk%2FtI%2FTPWE8hR6Ba7cQzDBa5ElOjBhMN6bJCRjmLOzisfmWlHxCPUFAgHo%2FN25dXkgEsLCNqOq1wYdmvNOznPPWH%2BBYDILWBSfqhsrvwWpZwoo0GRKJG7AZsKdnOK4W4DRkJErVaZwRhfQCgCwXuD4CCthOnQPuuHSbqBap%2FsmegtJ9bcyOU%2FjW2ucV3nhBqmaBMGVit20jXtLNy8P4K7WPU3oCkP9QzZiM9sQsdh%2B2dvkuzgCpGpeD8yXP9UrxY1jHhB4PXTzqmDxPndOu5kvX06NTE3TexF1AfLmD6lz%2B1cbtrpLtlkNVfVoXDmzImnRlAfSkTeeQulRXifmuv4WZPJu%2FGjYNqqs4fsHmtUJKXWfWgyOpwV0zCGjtXABjqfAUaQwiyUfmANmOyGB4fEzSA41xRpV0q8NBl%2F2fpqhvsD%2FjIRTZOWvN24wJ3lRAkm8jjoPEEM7Or5qgkZIBcsYANBdMkNb1%2BsOO8LV4a9YAQnCQroz4DorMlPPLNXyGIeqO3FRaZXNO1UY4PptRFFZ8GPqqtODm3Q%2BieWsuVKvr8YjlKKX8Xi07Gvq1SOI4cnFaL8FZTBdKRfu0SLcfsIzg%3D%3D&X-Amz-Signature=862cf9d8874a89fea437fff5871f38a9ee204ef058f1a582745e344628f3fbe1&X-Amz-SignedHeaders=host&x-amz-checksum-crc32=AAAAAA%3D%3D&x-amz-sdk-checksum-algorithm=CRC32&x-id=PutObject",
+							"protocol": "https",
+							"host": [
+								"ai-notes-audio",
+								"s3",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"c6def45d-fd0a-4ce1-9831-6ad86b6f73ee.mp3"
+							],
+							"query": [
+								{
+									"key": "X-Amz-Algorithm",
+									"value": "AWS4-HMAC-SHA256"
+								},
+								{
+									"key": "X-Amz-Content-Sha256",
+									"value": "UNSIGNED-PAYLOAD"
+								},
+								{
+									"key": "X-Amz-Credential",
+									"value": "ASIAWVEMKZUEF6WYQE63%2F20250502%2Fus-east-1%2Fs3%2Faws4_request"
+								},
+								{
+									"key": "X-Amz-Date",
+									"value": "20250502T222823Z"
+								},
+								{
+									"key": "X-Amz-Expires",
+									"value": "300"
+								},
+								{
+									"key": "X-Amz-Security-Token",
+									"value": "IQoJb3JpZ2luX2VjEEcaCXVzLWVhc3QtMSJGMEQCIFk0qzSKbQPS9bwAGa6Ekel2M7dzxD2L9ffs4ZS3xxmSAiBtela%2BykKCFlnEfVOwRZkBd6W820xMc%2BlqkLz%2B5TXKZiqPAwjg%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDQ1NzcwODMyNjE1MiIMDbU8Rw5rgdrEko2NKuMCGo4Lp9T6aSzChGjg3RduJt9Qcm6HKKivQNEkG9KGAcOTvWGUN34uKfZxR2keTUfPE1Qtqosxh8jUI75310ANxuKCKbNn62bY726Sk%2FtI%2FTPWE8hR6Ba7cQzDBa5ElOjBhMN6bJCRjmLOzisfmWlHxCPUFAgHo%2FN25dXkgEsLCNqOq1wYdmvNOznPPWH%2BBYDILWBSfqhsrvwWpZwoo0GRKJG7AZsKdnOK4W4DRkJErVaZwRhfQCgCwXuD4CCthOnQPuuHSbqBap%2FsmegtJ9bcyOU%2FjW2ucV3nhBqmaBMGVit20jXtLNy8P4K7WPU3oCkP9QzZiM9sQsdh%2B2dvkuzgCpGpeD8yXP9UrxY1jHhB4PXTzqmDxPndOu5kvX06NTE3TexF1AfLmD6lz%2B1cbtrpLtlkNVfVoXDmzImnRlAfSkTeeQulRXifmuv4WZPJu%2FGjYNqqs4fsHmtUJKXWfWgyOpwV0zCGjtXABjqfAUaQwiyUfmANmOyGB4fEzSA41xRpV0q8NBl%2F2fpqhvsD%2FjIRTZOWvN24wJ3lRAkm8jjoPEEM7Or5qgkZIBcsYANBdMkNb1%2BsOO8LV4a9YAQnCQroz4DorMlPPLNXyGIeqO3FRaZXNO1UY4PptRFFZ8GPqqtODm3Q%2BieWsuVKvr8YjlKKX8Xi07Gvq1SOI4cnFaL8FZTBdKRfu0SLcfsIzg%3D%3D"
+								},
+								{
+									"key": "X-Amz-Signature",
+									"value": "862cf9d8874a89fea437fff5871f38a9ee204ef058f1a582745e344628f3fbe1"
+								},
+								{
+									"key": "X-Amz-SignedHeaders",
+									"value": "host"
+								},
+								{
+									"key": "x-amz-checksum-crc32",
+									"value": "AAAAAA%3D%3D"
+								},
+								{
+									"key": "x-amz-sdk-checksum-algorithm",
+									"value": "CRC32"
+								},
+								{
+									"key": "x-id",
+									"value": "PutObject"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/messages?lastUpdatedTo=2025-05-03T23:59:59Z&lastUpdatedFrom=2025-05-01T00:00:00Z&userId=user123",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"messages"
+							],
+							"query": [
+								{
+									"key": "classification",
+									"value": "lugares por visitar",
+									"disabled": true
+								},
+								{
+									"key": "usedAI",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "dateFrom",
+									"value": "2025-05-01T00:00:00Z",
+									"disabled": true
+								},
+								{
+									"key": "dateTo",
+									"value": "2025-05-03T23:59:59Z",
+									"disabled": true
+								},
+								{
+									"key": "lastUpdatedTo",
+									"value": "2025-05-03T23:59:59Z"
+								},
+								{
+									"key": "lastUpdatedFrom",
+									"value": "2025-05-01T00:00:00Z"
+								},
+								{
+									"key": "userId",
+									"value": "user123"
+								},
+								{
+									"key": "inputType",
+									"value": "audio",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Message",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"classification\": \"reflexiones\",\n  \"originalContent\": \"Ayuda\",\n  \"usedAI\": false\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/messages/3df9c59f-7576-4293-b84d-3a4c27700564",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"messages",
+								"3df9c59f-7576-4293-b84d-3a4c27700564"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Message",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/messages/70c79f5a-f377-4754-a77e-35ccac179377?userId=user123",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"messages",
+								"70c79f5a-f377-4754-a77e-35ccac179377"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Message",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/messages/3b36602a-6116-42ae-b165-53c345040f4d?userId=user123",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"messages",
+								"3b36602a-6116-42ae-b165-53c345040f4d"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								}
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		}
 	],
 	"event": [
