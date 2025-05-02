@@ -16,6 +16,7 @@ jobs:
           - getMessages
           - updateMessage
           - deleteMessage
+
     steps:
       - uses: actions/checkout@v3
 
@@ -25,11 +26,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Zip Lambda
+      - name: Prepare and Zip Lambda
         run: |
-          cd lambdas
-          zip -j ../saphire-${{ matrix.lambda }}.zip ${{ matrix.lambda }}.js
-          cd ..
+          mkdir -p build/${{ matrix.lambda }}
+          cp lambdas/${{ matrix.lambda }}.js build/${{ matrix.lambda }}/index.js
+          cd build/${{ matrix.lambda }}
+          npm init -y > /dev/null
+          npm install uuid @aws-sdk/client-dynamodb > /dev/null
+          zip -r ../../../saphire-${{ matrix.lambda }}.zip .
+          cd ../../../
 
       - name: Deploy Lambda (Create or Update)
         run: |
@@ -44,7 +49,7 @@ jobs:
               --function-name $LAMBDA_NAME \
               --runtime nodejs18.x \
               --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }} \
-              --handler ${{ matrix.lambda }}.handler \
+              --handler index.handler \
               --zip-file fileb://$LAMBDA_NAME.zip \
               --region us-east-1
           else
@@ -53,6 +58,7 @@ jobs:
               --function-name $LAMBDA_NAME \
               --zip-file fileb://$LAMBDA_NAME.zip
           fi
-      - name: Clean ZIP
-        run: rm -f ${{ matrix.lambda }}.zip
 
+      - name: Clean ZIP and build
+        run: |
+          rm -rf saphire-${{ matrix.lambda }}.zip build/
