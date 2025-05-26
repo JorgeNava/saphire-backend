@@ -174,7 +174,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{API_URL}}/messages?lastUpdatedTo=2025-05-03T23:59:59Z&lastUpdatedFrom=2025-05-01T00:00:00Z&userId=user123",
+							"raw": "{{API_URL}}/messages?classification=lugares por visitar&usedAI=false&dateFrom=2025-05-01T00:00:00Z&dateTo=2025-05-03T23:59:59Z&lastUpdatedTo=2025-05-03T23:59:59Z&lastUpdatedFrom=2025-05-01T00:00:00Z&userId=user123&inputType=audio",
 							"host": [
 								"{{API_URL}}"
 							],
@@ -184,23 +184,19 @@
 							"query": [
 								{
 									"key": "classification",
-									"value": "lugares por visitar",
-									"disabled": true
+									"value": "lugares por visitar"
 								},
 								{
 									"key": "usedAI",
-									"value": "false",
-									"disabled": true
+									"value": "false"
 								},
 								{
 									"key": "dateFrom",
-									"value": "2025-05-01T00:00:00Z",
-									"disabled": true
+									"value": "2025-05-01T00:00:00Z"
 								},
 								{
 									"key": "dateTo",
-									"value": "2025-05-03T23:59:59Z",
-									"disabled": true
+									"value": "2025-05-03T23:59:59Z"
 								},
 								{
 									"key": "lastUpdatedTo",
@@ -216,36 +212,8 @@
 								},
 								{
 									"key": "inputType",
-									"value": "audio",
-									"disabled": true
+									"value": "audio"
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Message",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"userId\": \"user123\",\n  \"classification\": \"reflexiones\",\n  \"originalContent\": \"Ayuda\",\n  \"usedAI\": false\n}"
-						},
-						"url": {
-							"raw": "{{API_URL}}/messages/3df9c59f-7576-4293-b84d-3a4c27700564",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"messages",
-								"3df9c59f-7576-4293-b84d-3a4c27700564"
 							]
 						}
 					},
@@ -281,6 +249,33 @@
 					"response": []
 				},
 				{
+					"name": "Update Message",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"classification\": \"reflexiones\",\n  \"originalContent\": \"Ayuda\",\n  \"usedAI\": false\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/messages/6a914232-dc89-4c92-a2c5-d294902b2ae5",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"messages",
+								"6a914232-dc89-4c92-a2c5-d294902b2ae5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Delete Message",
 					"request": {
 						"method": "DELETE",
@@ -301,6 +296,198 @@
 								}
 							]
 						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lists",
+			"item": [
+				{
+					"name": "Create List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user123\",\n    \"name\": \"Compras semanales\",\n    \"tags\": [\"supermercado\",\"hogar\"],\n    \"items\": [\"Leche\",\"Pan\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/lists",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"lists"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"https://tu-api.com/lists\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"userId\": \"user123\",\n    \"name\": \"Compras semanales\",\n    \"tags\": [\"supermercado\",\"hogar\"],\n    \"items\": [\"Leche\",\"Pan\"]\n  }'"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lists",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/lists?userId=user123",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"lists"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl \"https://tu-api.com/lists?userId=user123\""
+					},
+					"response": []
+				},
+				{
+					"name": "Add Item to List",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user123\",\n    \"listId\": \"2ba0069f-83c4-47ef-bb3b-21f9ba62e809\",\n    \"newItem\": \"Huevos\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/lists/items",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"lists",
+								"items"
+							]
+						},
+						"description": "Generated from cURL: curl -X PATCH \"$API_BASE/lists/items\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"userId\": \"user123\",\n    \"listId\": \"a1b2c3d4-e5f6-7890-abcd-1234567890ab\",\n    \"newItem\": \"Huevos\"\n  }'"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete List",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user123\",\n    \"listId\": \"9a0ba068-0077-4d36-a87a-724195d7b30a\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/lists",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"lists"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE 'https://YOUR_API_GATEWAY_URL/delete-list' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"userId\": \"user123\",\n    \"listId\": \"LIST_ID_TO_DELETE\"\n  }'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Replace List Items",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user123\",\n    \"listId\": \"6caee7b5-bdd7-4120-ae66-6a4764e357e8\",\n    \"items\": [\"Nuevo elemento 1\", \"Otro elemssento\", \"Y otro más\"]\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/lists/items",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"lists",
+								"items"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST 'https://YOUR_API_GATEWAY_URL/replace-items' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"userId\": \"user123\",\n    \"listId\": \"LIST_ID_TO_REPLACE\",\n    \"items\": [\"Nuevo elemento 1\", \"Otro elemento\", \"Y otro más\"]\n  }'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete List Item",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user123\",\n    \"listId\": \"6caee7b5-bdd7-4120-ae66-6a4764e357e8\",\n    \"item\": \"Otro elemssento\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/lists/items",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"lists",
+								"items"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE 'https://TU_API_GATEWAY_URL/lists/item' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"userId\": \"user123\",\n    \"listId\": \"LIST_ID_A_BORRAR\",\n    \"item\": \"Pan\"\n  }'\n"
 					},
 					"response": []
 				}
