@@ -21,7 +21,11 @@ exports.handler = async (event) => {
         userId: { S: userId },
         listId: { S: listId },
       },
-      UpdateExpression: 'SET items = :newItems',
+      // Usa alias para el atributo reservado "items"
+      UpdateExpression: 'SET #itms = :newItems',
+      ExpressionAttributeNames: {
+        '#itms': 'items',
+      },
       ExpressionAttributeValues: {
         ':newItems': { L: dynamoList },
       },
@@ -29,14 +33,18 @@ exports.handler = async (event) => {
     };
 
     const res = await client.send(new UpdateItemCommand(params));
-    const updated = res.Attributes.items.L.map(x => x.S);
+
+    // Extrae el array actualizado
+    const updated = res.Attributes['#itms']
+      ? res.Attributes['#itms'].L.map(x => x.S)
+      : [];
 
     return {
       statusCode: 200,
       body: JSON.stringify({ items: updated }),
     };
   } catch (err) {
-    console.error(err);
+    console.error('Error al reemplazar elementos de la lista:', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Error interno del servidor' }),
