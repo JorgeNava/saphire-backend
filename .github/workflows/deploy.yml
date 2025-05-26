@@ -22,7 +22,7 @@ jobs:
           - addItemToList
           - deleteList
           - deleteListItem
-          - replateListItems
+          - replaceListItems
     steps:
       - uses: actions/checkout@v3
 
