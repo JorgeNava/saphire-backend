@@ -17,14 +17,17 @@ exports.handler = async (event) => {
       };
     }
 
-    // 1) Leer la lista actual
+    // 1) Leer la lista actual (alias para "items")
     const getRes = await client.send(new GetItemCommand({
       TableName: process.env.LISTS_TABLE,
       Key: {
         userId: { S: userId },
         listId: { S: listId },
       },
-      ProjectionExpression: 'items',
+      ProjectionExpression: '#itms',
+      ExpressionAttributeNames: {
+        '#itms': 'items',
+      },
     }));
 
     const current = getRes.Item?.items?.L?.map(x => x.S) || [];
@@ -32,26 +35,31 @@ exports.handler = async (event) => {
     // 2) Filtrar el elemento a eliminar (elimina todas las ocurrencias)
     const filtered = current.filter(i => i !== item);
 
-    // 3) Escribir la lista filtrada de vuelta
-    await client.send(new UpdateItemCommand({
+    // 3) Escribir la lista filtrada de vuelta (alias para "items")
+    const updateRes = await client.send(new UpdateItemCommand({
       TableName: process.env.LISTS_TABLE,
       Key: {
         userId: { S: userId },
         listId: { S: listId },
       },
-      UpdateExpression: 'SET items = :newItems',
+      UpdateExpression: 'SET #itms = :newItems',
+      ExpressionAttributeNames: {
+        '#itms': 'items',
+      },
       ExpressionAttributeValues: {
         ':newItems': { L: filtered.map(i => ({ S: i })) },
       },
       ReturnValues: 'UPDATED_NEW',
     }));
 
+    const updated = updateRes.Attributes?.items?.L?.map(x => x.S) || filtered;
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ items: filtered }),
+      body: JSON.stringify({ items: updated }),
     };
   } catch (err) {
-    console.error(err);
+    console.error('Error al eliminar elemento de la lista:', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Error interno del servidor' }),
