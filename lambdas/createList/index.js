@@ -9,35 +9,30 @@ const { v4: uuidv4 } = require('uuid');
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 exports.handler = async (event) => {
-  // 1) Validación de body
-  console.log('[NAVA] event', event);
-  if (!event.body) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'No se recibió un body válido' }),
-    };
+  // 1) Obtener payload ya sea de event.body (string) o directamente de event (objeto)
+  let payload;
+  if (event.body && typeof event.body === 'string') {
+    try {
+      payload = JSON.parse(event.body);
+    } catch (err) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'JSON mal formado en el body' }),
+      };
+    }
+  } else {
+    payload = event;
   }
 
-  let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch (err) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'JSON mal formado' }),
-    };
-  }
+  const { userId, name, tags = [], items = [] } = payload;
 
-  const { userId, name, tags = [], items = [] } = body;
-
-  // 2) Validación de campos requeridos
+  // 2) Validaciones
   if (!userId || typeof userId !== 'string' || !userId.trim()) {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'El campo userId es requerido y debe ser un string no vacío' }),
     };
   }
-
   if (!name || typeof name !== 'string' || !name.trim()) {
     return {
       statusCode: 400,
@@ -45,13 +40,13 @@ exports.handler = async (event) => {
     };
   }
 
-  // 3) Construcción del ítem a insertar
+  // 3) Construcción del item a guardar
   const listId    = uuidv4();
   const createdAt = new Date().toISOString();
   const params    = {
     TableName: process.env.LISTS_TABLE,
     Item: {
-      userId:    { S: userId },
+      userId:    { S: userId.trim() },
       listId:    { S: listId },
       name:      { S: name.trim() },
       tags:      { SS: Array.isArray(tags) ? tags.map(t => t.trim()).filter(Boolean) : [] },
@@ -60,7 +55,7 @@ exports.handler = async (event) => {
     },
   };
 
-  // 4) Envío a DynamoDB
+  // 4) Guardar en DynamoDB
   try {
     await client.send(new PutItemCommand(params));
   } catch (dbErr) {
@@ -71,7 +66,7 @@ exports.handler = async (event) => {
     };
   }
 
-  // 5) Respuesta exitosa
+  // 5) Responder al cliente
   return {
     statusCode: 201,
     body: JSON.stringify({
