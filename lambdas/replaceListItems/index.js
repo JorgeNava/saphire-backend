@@ -35,8 +35,9 @@ exports.handler = async (event) => {
     const res = await client.send(new UpdateItemCommand(params));
 
     // Extrae el array actualizado
-    const updated = res.Attributes['#itms']
-      ? res.Attributes['#itms'].L.map(x => x.S)
+    const updateRes = await client.send(new UpdateItemCommand(params));
+    const updated = updateRes.Attributes?.items?.L
+      ? updateRes.Attributes.items.L.map(x => x.S)
       : [];
 
     return {
