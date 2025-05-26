@@ -17,6 +17,9 @@ jobs:
           - getMessage
           - updateMessage
           - deleteMessage
+          - createList
+          - getLists
+          - addItemToList
     steps:
       - uses: actions/checkout@v3
 
