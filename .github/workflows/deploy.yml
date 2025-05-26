@@ -21,6 +21,8 @@ jobs:
           - getLists
           - addItemToList
           - deleteList
+          - deleteListItem
+          - replateListItems
     steps:
       - uses: actions/checkout@v3
 
