@@ -56,7 +56,7 @@ jobs:
               --handler index.handler \
               --zip-file fileb://saphire-${{ matrix.lambda }}.zip \
               --region us-east-1 \
-              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
+              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},LISTS_TABLE=${{ secrets.LISTS_TABLE }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
           else
             echo "Lambda exists. Updating code..."
             aws lambda update-function-code \
@@ -70,7 +70,7 @@ jobs:
             aws lambda update-function-configuration \
               --function-name $LAMBDA_NAME \
               --handler index.handler \
-              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
+              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},LISTS_TABLE=${{ secrets.LISTS_TABLE }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
           fi
 
       - name: Clean ZIP and build
