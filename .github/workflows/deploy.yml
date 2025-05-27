@@ -21,22 +21,22 @@ jobs:
         with:
           node-version: 18
 
-      - name: Build y zip de Lambdas
+      - name: Build & Zip Lambdas
         run: |
           rm -rf build
           mkdir build
-          # Por cada operación en lambdas/*/*
-          for entidad in lambdas/*; do
-            for op in $entidad/*; do
-              op_name=$(basename $op)
+          for op in lambdas/*/*; do
+            if [ -d "$op" ]; then
+              op_name=$(basename "$op")
               zip_dir=build/${TABLE_PREFIX}-${op_name}
-              mkdir -p $zip_dir
-              cp -r $op/* $zip_dir/
-              cd $zip_dir
-              npm install --omit=dev
-              zip -r ../${TABLE_PREFIX}-${op_name}.zip .
-              cd ../../../
-            done
+              mkdir -p "$zip_dir"
+              # Copia todo el contenido, incluidos archivos ocultos
+              cp -r "${op}/." "$zip_dir/"
+              pushd "$zip_dir"
+                npm install --omit=dev
+                zip -r "../${TABLE_PREFIX}-${op_name}.zip" .
+              popd
+            fi
           done
 
       - name: Configure AWS Credentials
