@@ -30,7 +30,6 @@ jobs:
               op_name=$(basename "$op")
               zip_dir=build/${TABLE_PREFIX}-${op_name}
               mkdir -p "$zip_dir"
-              # Copia todo el contenido, incluidos archivos ocultos
               cp -r "${op}/." "$zip_dir/"
               pushd "$zip_dir"
                 npm install --omit=dev
@@ -45,6 +44,11 @@ jobs:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
 
       - name: Terraform Init & Apply
         working-directory: ./terraform
