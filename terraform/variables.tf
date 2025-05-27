@@ -1,21 +1,22 @@
+###############################################################################
+# variables.tf
+# Variables de entrada para todo el proyecto Terraform de Zafira
+###############################################################################
+
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  description = "Región de AWS donde se desplegarán los recursos"
+  type        = string
+  default     = "us-east-1"
 }
 
 variable "table_prefix" {
+  description = "Prefijo que se usará en nombres de tablas DynamoDB, Lambdas y API Gateway"
   type        = string
-  description = "Prefijo para tablas DynamoDB, Lambdas y API Gateway"
   default     = "Zafira"
 }
 
 variable "lambda_zip_dir" {
+  description = "Ruta relativa (desde el directorio de Terraform) donde el CI deposita los ZIPs de cada función Lambda"
   type        = string
-  description = "Directorio donde CI deja los ZIPs de cada Lambda"
   default     = "../build"
-}
-
-variable "lambda_execution_role_name" {
-  type    = string
-  default = "${var.table_prefix}-lambda-exec-role"
 }
