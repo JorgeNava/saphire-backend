@@ -4,9 +4,9 @@
  * Runtime: Node.js 18.x
  */
 exports.handler = async (event) => {
-  // Aquí va la lógica de DynamoDB para getThought
-  return { statusCode: 200, body: JSON.stringify({ message: "thoughts/getThought OK" }) };
+  // Lógica de getThought para thoughts
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "thoughts/getThought OK" })
+  };
 };
-
-// Curl de prueba:
-// curl -X POST https://<API_URL>/thoughts?userId=usuario-123
