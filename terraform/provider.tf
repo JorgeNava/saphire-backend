@@ -12,11 +12,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "zafira-terraform-state"              # Bucket S3 donde se guarda el state
-    key            = "env/${var.table_prefix}/terraform.tfstate"  # Ruta dentro del bucket
-    region         = var.aws_region                        # Región del bucket y locks
-    dynamodb_table = "zafira-terraform-locks"              # Tabla DynamoDB para bloqueo de concurrencia
-    encrypt        = true                                  # Cifrar el state en reposo
+    bucket         = "zafira-terraform-state"     # nombre de tu bucket S3
+    key            = "env/Zafira/terraform.tfstate" # prefijo fijo y ruta
+    region         = "us-east-1"                  # región del bucket y locks
+    dynamodb_table = "zafira-terraform-locks"     # tabla para locking
+    encrypt        = true                         # cifrar el state en reposo
   }
 }
 
