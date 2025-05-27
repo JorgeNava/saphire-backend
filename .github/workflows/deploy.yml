@@ -1,82 +1,59 @@
-name: Deploy Lambdas
+name: Deploy Infra y Lambdas
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy-all:
+  build_and_deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lambda:
-          - saveTextMessage
-          - saveAudioMessage
-          - generateUploadUrl
-          - getMessages
-          - getMessage
-          - updateMessage
-          - deleteMessage
-          - createList
-          - getLists
-          - addItemToList
-          - deleteList
-          - deleteListItem
-          - replaceListItems
+
+    env:
+      AWS_REGION: us-east-1
+      TABLE_PREFIX: Zafira
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - uses: aws-actions/configure-aws-credentials@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          node-version: 18
+
+      - name: Build y zip de Lambdas
+        run: |
+          rm -rf build
+          mkdir build
+          # Por cada operación en lambdas/*/*
+          for entidad in lambdas/*; do
+            for op in $entidad/*; do
+              op_name=$(basename $op)
+              zip_dir=build/${TABLE_PREFIX}-${op_name}
+              mkdir -p $zip_dir
+              cp -r $op/* $zip_dir/
+              cd $zip_dir
+              npm install --omit=dev
+              zip -r ../${TABLE_PREFIX}-${op_name}.zip .
+              cd ../../../
+            done
+          done
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region:            ${{ env.AWS_REGION }}
 
-      - name: Prepare and Zip Lambda
+      - name: Terraform Init & Apply
+        working-directory: ./terraform
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION:            ${{ env.AWS_REGION }}
+          TABLE_PREFIX:          ${{ env.TABLE_PREFIX }}
+          LAMBDA_ZIP_DIR:        ../build
         run: |
-          rm -rf build/${{ matrix.lambda }}
-          mkdir -p build/${{ matrix.lambda }}
-          cp -r lambdas/${{ matrix.lambda }}/* build/${{ matrix.lambda }}/
-
-          cd build/${{ matrix.lambda }}
-          npm install --omit=dev
-          zip -r ../../saphire-${{ matrix.lambda }}.zip .
-          cd -
-
-      - name: Deploy Lambda (Create or Update)
-        run: |
-          set -e
-          LAMBDA_NAME="saphire-${{ matrix.lambda }}"
-
-          EXISTS=$(aws lambda get-function --function-name $LAMBDA_NAME 2>/dev/null || true)
-
-          if [ -z "$EXISTS" ]; then
-            echo "Lambda does not exist. Creating..."
-            aws lambda create-function \
-              --function-name $LAMBDA_NAME \
-              --runtime nodejs18.x \
-              --role arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.LAMBDA_EXECUTION_ROLE }} \
-              --handler index.handler \
-              --zip-file fileb://saphire-${{ matrix.lambda }}.zip \
-              --region us-east-1 \
-              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},LISTS_TABLE=${{ secrets.LISTS_TABLE }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
-          else
-            echo "Lambda exists. Updating code..."
-            aws lambda update-function-code \
-              --function-name $LAMBDA_NAME \
-              --zip-file fileb://saphire-${{ matrix.lambda }}.zip
-
-            echo "Waiting for AWS to apply code update..."
-            sleep 10
-
-            echo "Updating handler and env vars..."
-            aws lambda update-function-configuration \
-              --function-name $LAMBDA_NAME \
-              --handler index.handler \
-              --environment Variables="{DELETE_AUDIO_AFTER_TRANSCRIBE=${{ secrets.DELETE_AUDIO_AFTER_TRANSCRIBE }},DYNAMO_TABLE=${{ secrets.DYNAMO_TABLE }},AUDIO_BUCKET=${{ secrets.AUDIO_BUCKET }},LISTS_TABLE=${{ secrets.LISTS_TABLE }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}}"
-          fi
-
-      - name: Clean ZIP and build
-        run: |
-          rm -rf saphire-${{ matrix.lambda }}.zip
-          rm -rf build/${{ matrix.lambda }}
+          terraform init
+          terraform apply -auto-approve

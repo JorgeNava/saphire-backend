@@ -128,6 +128,22 @@ La clasificación de texto es realizada por GPT-4 Turbo usando una lista predefi
 
 ---
 
+## 🗂️ Modelos de Datos
+
+A continuación se describen las tablas principales en DynamoDB y sus atributos:
+
+| Modelo        | PK               | SK          | Atributos principales                                                                                             |
+|---------------|------------------|-------------|--------------------------------------------------------------------------------------------------------------------|
+| **Users**     | `userId`         | —           | `first`, `lastname`, `email`, `passwordHash`/`cognitoSub`, `roles`, `iamRoleArn`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy` |
+| **Messages**  | `conversationId` | `timestamp` | `messageId`, `sender`, `content`, `inputType`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy`             |
+| **Thoughts**  | `thoughtId`      | —           | `userId`, `content`, `tagIds`, `tagSource`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy`                |
+| **Lists**     | `listId`         | —           | `userId`, `name`, `items`, `tagIds`, `tagSource`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy`           |
+| **Notes**     | `noteId`         | —           | `userId`, `title`, `content`, `attachmentKeys`, `tagIds`, `tagSource`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy` |
+| **Tags**      | `tagId`          | —           | `userId`, `name`, `color`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy`                                 |
+| **ActionsLog**| `actionId`       | —           | `userId`, `messageId` (opcional), `actionType`, `status`, `details`, `timestamp`, `createdAt`, `updatedAt`, `createdBy`, `lastModifiedBy` |
+
+---
+
 ## 📅 Almacenamiento y consultas
 
 - Los mensajes se almacenan en DynamoDB con `userId` como Partition Key y `timestamp` (ISO 8601) como Sort Key.

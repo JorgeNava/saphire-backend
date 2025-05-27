@@ -1,1 +1,23 @@
+# Directorio de plugins y módulos descargados por Terraform
+.terraform/
+
+# Archivos de estado (contienen datos sensibles/que cambian con cada apply)
+*.tfstate
+*.tfstate.*
+
+# Backups automáticos de estado
+*.tfstate.backup
+
+# Planes serializados
+*.tfplan
+
+# Archivos de override de Terraform
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Logs de crash de Terraform
+crash.log
+
 .env
