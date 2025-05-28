@@ -15,9 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) Clonamos el repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # 2) Configuramos credenciales AWS *antes* de cualquier llamada a AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -25,33 +27,38 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
+      # 3) Instalamos Node.js para empaquetar las Lambdas
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # 4) Build & Zip de cada Lambda
       - name: Build & Zip Lambdas
         run: |
           rm -rf build
           mkdir build
-          for op in lambdas/*/*; do
-            if [ -d "$op" ]; then
-              op_name=$(basename "$op")
-              zip_dir=build/${TABLE_PREFIX}-${op_name}
+          for dir in lambdas/*/*; do
+            if [ -d "$dir" ]; then
+              fn=$(basename "$dir")
+              zip_dir=build/${TABLE_PREFIX}-${fn}
               mkdir -p "$zip_dir"
-              cp -r "${op}/." "$zip_dir/"
+              # Copia todo, incluidos dotfiles, sin fallar si está vacío
+              cp -r "${dir}/." "$zip_dir/"
               pushd "$zip_dir"
                 npm install --omit=dev
-                zip -r "../${TABLE_PREFIX}-${op_name}.zip" .
+                zip -r "../${TABLE_PREFIX}-${fn}.zip" .
               popd
             fi
           done
 
+      # 5) Instalamos Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
 
+      # 6) Terraform Init con backend configurado vía CLI
       - name: Terraform Init
         working-directory: ./terraform
         run: |
@@ -62,6 +69,12 @@ jobs:
             -backend-config="dynamodb_table=zafira-terraform-locks" \
             -backend-config="encrypt=true"
 
+      # 7) (Opcional) Verifica cambios
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -out=tfplan
+
+      # 8) Aplica la infraestructura
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
