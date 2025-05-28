@@ -20,8 +20,3 @@ variable "lambda_zip_dir" {
   type        = string
   default     = "../build"
 }
-
-variable "lambda_role_arn" {
-  type        = string
-  description = "ARN del rol IAM que usarán las Lambdas"
-}
