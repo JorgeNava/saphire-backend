@@ -50,7 +50,8 @@ locals {
 
 # 1) Definimos el HTTP API
 resource "aws_apigatewayv2_api" "http_api" {
-  name          = "${var.table_prefix}-HTTP-API"
+  name          = "${var.table_prefix}-Backend-Gateway"
+  description   = "API Gateway for Zafira Backend"
   protocol_type = "HTTP"
   tags = {
     Project = "Zafira"
