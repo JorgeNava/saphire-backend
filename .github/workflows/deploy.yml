@@ -27,6 +27,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
+      - name: Verificar acceso S3 y DynamoDB
+        run: |
+          aws sts get-caller-identity
+          aws s3 ls s3://zafira-terraform-states || echo "No pudo listar S3"
+          aws dynamodb describe-table --table-name zafira-terraform-locks || echo "No pudo describir la tabla"
+
       # 3) Instalamos Node.js para empaquetar las Lambdas
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -63,7 +69,7 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform init \
-            -backend-config="bucket=zafira-terraform-state" \
+            -backend-config="bucket=zafira-terraform-states" \
             -backend-config="key=env/${{ env.TABLE_PREFIX }}/terraform.tfstate" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=zafira-terraform-locks" \
