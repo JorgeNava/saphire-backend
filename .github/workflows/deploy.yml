@@ -1,20 +1,29 @@
+# .github/workflows/deploy.yml
 name: Deploy Infra y Lambdas
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  TABLE_PREFIX: Zafira
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: us-east-1
-      TABLE_PREFIX: Zafira
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -38,26 +47,21 @@ jobs:
             fi
           done
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ env.AWS_REGION }}
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
 
-      - name: Terraform Init & Apply
+      - name: Terraform Init
         working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION:            ${{ env.AWS_REGION }}
-          TABLE_PREFIX:          ${{ env.TABLE_PREFIX }}
-          LAMBDA_ZIP_DIR:        ../build
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform init \
+            -backend-config="bucket=zafira-terraform-state" \
+            -backend-config="key=env/${{ env.TABLE_PREFIX }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=zafira-terraform-locks" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
