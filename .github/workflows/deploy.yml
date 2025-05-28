@@ -75,10 +75,6 @@ jobs:
             -backend-config="dynamodb_table=zafira-terraform-locks" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Import IAM Role
-        working-directory: ./terraform
-        run: terraform import aws_iam_role.lambda_exec Zafira-lambda-exec-role
-
       # 7) (Opcional) Verifica cambios
       - name: Terraform Plan
         working-directory: ./terraform
