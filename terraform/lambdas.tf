@@ -57,3 +57,23 @@ resource "aws_lambda_function" "all" {
     aws_iam_role_policy.lambda_logs
   ]
 }
+
+resource "aws_iam_role_policy" "lambda_logs" {
+  name = "${var.table_prefix}-lambda-logs"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
