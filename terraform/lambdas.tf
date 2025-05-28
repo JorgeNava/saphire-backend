@@ -1,3 +1,5 @@
+# terraform/lambdas.tf
+
 locals {
   lambda_functions = [
     "saveTextMessage",
@@ -32,7 +34,7 @@ locals {
     "getActions",
     "createUser",
     "getUser",
-    "updateUser"
+    "updateUser",
   ]
 }
 
@@ -50,5 +52,8 @@ resource "aws_lambda_function" "all" {
     }
   }
 
-  depends_on = [aws_iam_role_policy.lambda_ddb_access]
+  depends_on = [
+    aws_iam_role_policy.lambda_ddb_access,
+    aws_iam_role_policy.lambda_logs
+  ]
 }
