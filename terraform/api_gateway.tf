@@ -82,3 +82,12 @@ resource "aws_lambda_permission" "apigw_invoke" {
   function_name = aws_lambda_function.all[each.key].function_name
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
+
+#################################################################
+# 5. Stage: crear el stage por defecto para el HTTP API
+#################################################################
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.http_api.id
+  name        = "$default"       # the built-in “default” stage
+  auto_deploy = true             # pushes your routes/integrations immediately
+}
