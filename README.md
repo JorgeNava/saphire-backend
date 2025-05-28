@@ -1,6 +1,6 @@
 # Saphire Backend – AI Notes App
 
-Este backend **serverless** provee soporte para la aplicación móvil **AI Notes App**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
+Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
 ---
 
@@ -67,8 +67,7 @@ saphire-backend/
 
 1. **Backend remoto** en S3 + DynamoDB locks (S3 `zafira-terraform-states`, DDB `zafira-terraform-locks`).  
 2. **Importar** recursos ya existentes:  
-```
-bash
+```bash
 terraform init \
   -backend-config="bucket=zafira-terraform-states" \
   -backend-config="key=env/Zafira/terraform.tfstate" \
@@ -82,8 +81,7 @@ terraform import aws_iam_role.lambda_exec Zafira-lambda-exec-role
 ```
 
 3. **Variables (`variables.tf`)**:  
-```
-hcl
+```hcl
 variable "aws_region" {
   type    = string
   default = "us-east-1"
