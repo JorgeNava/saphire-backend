@@ -7,7 +7,6 @@
 # Bucket para attachments de mensajes
 resource "aws_s3_bucket" "message_attachments" {
   bucket        = var.aws_s3_message_attachments_bucket
-  acl           = "private"
   force_destroy = true
 
   tags = {
@@ -28,7 +27,6 @@ resource "aws_s3_bucket_public_access_block" "message_attachments" {
 # Bucket para attachments de notas
 resource "aws_s3_bucket" "notes_attachments" {
   bucket        = var.aws_s3_notes_attachments_bucket
-  acl           = "private"
   force_destroy = true
 
   tags = {
