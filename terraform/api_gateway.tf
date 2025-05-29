@@ -35,6 +35,7 @@ locals {
     updateMessage     = { method = "PUT"    , path = "/messages/{messageId}" }
     deleteMessage     = { method = "DELETE" , path = "/messages/{messageId}" }
     createList        = { method = "POST"   , path = "/lists"                }
+    getList           = { method = "GET"    , path = "/lists/{listId}"       }
     getLists          = { method = "GET"    , path = "/lists"                }
     addItemToList     = { method = "POST"   , path = "/lists/{listId}/items" }
     deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{item}" }
