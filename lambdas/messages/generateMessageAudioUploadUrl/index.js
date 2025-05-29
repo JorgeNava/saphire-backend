@@ -13,7 +13,7 @@ const s3 = new S3Client({ region: process.env.AWS_REGION });
 exports.handler = async () => {
   const key = `${uuidv4()}.mp3`;
   const cmd = new PutObjectCommand({
-    Bucket:      process.env.AUDIO_BUCKET,
+    Bucket:      process.env.AWS_S3_MESSAGE_ATTACHMENTS_BUCKET,
     Key:         key,
     ContentType: 'audio/mpeg'
   });

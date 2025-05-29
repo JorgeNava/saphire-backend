@@ -83,7 +83,7 @@ exports.handler = async (event) => {
 
     // 1) bajar audio
     const obj = await s3.send(
-      new GetObjectCommand({ Bucket: process.env.AUDIO_BUCKET, Key: s3Key })
+      new GetObjectCommand({ Bucket: process.env.AWS_S3_MESSAGE_ATTACHMENTS_BUCKET, Key: s3Key })
     );
     const buffer = await streamToBuffer(obj.Body);
 
@@ -137,7 +137,7 @@ exports.handler = async (event) => {
     // 6) opcionalmente borrar el audio
     if (process.env.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE === 'true') {
       await s3.send(
-        new DeleteObjectCommand({ Bucket: process.env.AUDIO_BUCKET, Key: s3Key })
+        new DeleteObjectCommand({ Bucket: process.env.AWS_S3_MESSAGE_ATTACHMENTS_BUCKET, Key: s3Key })
       );
     }
 
