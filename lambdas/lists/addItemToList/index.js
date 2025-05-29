@@ -27,19 +27,29 @@ exports.handler = async (event) => {
       };
     }
 
-    // Optional: generar un id único para el ítem
     const itemObj = { itemId: uuidv4(), content: item };
+    const now     = new Date().toISOString();
 
-    // Añadir al final del array items
     const params = {
       TableName: TABLE_NAME,
-      Key: { listId },
-      UpdateExpression: 'SET items = list_append(if_not_exists(items, :empty), :i), updatedAt = :u',
+      Key:       { listId },
+
+      // Usamos placeholder #items para evitar palabra reservada
+      UpdateExpression: [
+        'SET #items        = list_append(if_not_exists(#items, :empty), :i)',
+        ', updatedAt       = :u'
+      ].join(''),
+
+      ExpressionAttributeNames: {
+        '#items': 'items'
+      },
+
       ExpressionAttributeValues: {
         ':i'     : [ itemObj ],
         ':empty' : [],
-        ':u'     : new Date().toISOString()
+        ':u'     : now
       },
+
       ReturnValues: 'ALL_NEW'
     };
 
@@ -49,6 +59,7 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify(result.Attributes)
     };
+
   } catch (error) {
     console.error("addItemToList error:", error);
     return {
