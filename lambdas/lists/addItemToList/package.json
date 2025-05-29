@@ -1,9 +1,10 @@
 {
-  "name": "addItemToList",
+  "name": "lists-addItemToList",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.541.0",
-    "node-fetch": "^2.6.7"
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/util-dynamodb": "^3.0.0",
+    "uuid": "^8.3.2"
   }
 }

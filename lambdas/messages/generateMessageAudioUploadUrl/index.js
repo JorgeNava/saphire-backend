@@ -1,3 +1,9 @@
+/**
+ * Lambda — generateMessageAudioUploadUrl
+ * CURL example:
+ * curl -X GET https://{api-id}.execute-api.{region}.amazonaws.com/messages/upload-url
+ */
+
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl }              = require('@aws-sdk/s3-request-presigner');
 const { v4: uuidv4 }                = require('uuid');

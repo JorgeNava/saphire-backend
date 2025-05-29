@@ -1,68 +1,63 @@
-// deleteListItem.js
-const {
-  DynamoDBClient,
-  GetItemCommand,
-  UpdateItemCommand,
-} = require('@aws-sdk/client-dynamodb');
+/**
+ * Lambda — deleteListItem
+ * CURL example:
+ * curl -X DELETE https://{api-id}.execute-api.{region}.amazonaws.com/lists/{listId}/items/{itemId}
+ */
 
-const client = new DynamoDBClient();
+const AWS = require('aws-sdk');
+const docClient   = new AWS.DynamoDB.DocumentClient();
+const TABLE_NAME  = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {
   try {
-    const { userId, listId, item } = JSON.parse(event.body);
-    if (!userId || !listId || !item) {
+    const { listId, itemId } = event.pathParameters;
+
+    if (!listId || !itemId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Debe proporcionar userId, listId e item' }),
+        body: JSON.stringify({ error: "Se requieren listId e itemId en la ruta." })
       };
     }
 
-    // 1) Leer la lista actual (alias para "items")
-    const getRes = await client.send(new GetItemCommand({
-      TableName: process.env.LISTS_TABLE,
-      Key: {
-        userId: { S: userId },
-        listId: { S: listId },
-      },
-      ProjectionExpression: '#itms',
-      ExpressionAttributeNames: {
-        '#itms': 'items',
-      },
-    }));
+    // 1) Obtenemos la lista actual
+    const { Item } = await docClient.get({
+      TableName: TABLE_NAME,
+      Key: { listId }
+    }).promise();
 
-    const current = getRes.Item?.items?.L?.map(x => x.S) || [];
+    if (!Item) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: `Lista ${listId} no encontrada.` })
+      };
+    }
 
-    // 2) Filtrar el elemento a eliminar (elimina todas las ocurrencias)
-    const filtered = current.filter(i => i !== item);
+    // 2) Filtramos el ítem a eliminar
+    const newItems = (Item.items || []).filter(i => i.itemId !== itemId);
 
-    // 3) Escribir la lista filtrada de vuelta (alias para "items")
-    const updateRes = await client.send(new UpdateItemCommand({
-      TableName: process.env.LISTS_TABLE,
-      Key: {
-        userId: { S: userId },
-        listId: { S: listId },
-      },
-      UpdateExpression: 'SET #itms = :newItems',
-      ExpressionAttributeNames: {
-        '#itms': 'items',
-      },
+    // 3) Actualizamos el array completo
+    const params = {
+      TableName: TABLE_NAME,
+      Key: { listId },
+      UpdateExpression: 'SET items = :items, updatedAt = :u',
       ExpressionAttributeValues: {
-        ':newItems': { L: filtered.map(i => ({ S: i })) },
+        ':items': newItems,
+        ':u'    : new Date().toISOString()
       },
-      ReturnValues: 'UPDATED_NEW',
-    }));
+      ReturnValues: 'ALL_NEW'
+    };
 
-    const updated = updateRes.Attributes?.items?.L?.map(x => x.S) || filtered;
+    const result = await docClient.update(params).promise();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ items: updated }),
+      body: JSON.stringify(result.Attributes)
     };
-  } catch (err) {
-    console.error('Error al eliminar elemento de la lista:', err);
+  } catch (error) {
+    console.error("deleteListItem error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno del servidor' }),
+      body: JSON.stringify({ error: "Error al eliminar el ítem de la lista." })
     };
   }
 };

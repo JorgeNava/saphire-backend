@@ -26,9 +26,8 @@ resource "aws_apigatewayv2_integration" "lambda" {
 #################################################################
 locals {
   routes = {
-    saveTextMessage   = { method = "POST"   , path = "/messages/text"         }
-    saveAudioMessage  = { method = "POST"   , path = "/messages/audio"        }
-    generateUploadUrl = { method = "POST"   , path = "/messages/upload-url"   }
+    createMessageFromAudio  = { method = "POST"   , path = "/messages/audio"        }
+    generateMessageAudioUploadUrl = { method = "POST"   , path = "/messages/upload-url"   }
     getMessages       = { method = "GET"    , path = "/messages"             }
     getMessage        = { method = "GET"    , path = "/messages/{messageId}" }
     updateMessage     = { method = "PUT"    , path = "/messages/{messageId}" }
@@ -37,7 +36,6 @@ locals {
     getLists          = { method = "GET"    , path = "/lists"                }
     addItemToList     = { method = "POST"   , path = "/lists/{listId}/items" }
     deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{item}" }
-    replaceListItems  = { method = "PUT"    , path = "/lists/{listId}/items" }
     deleteList        = { method = "DELETE" , path = "/lists/{listId}"       }
     createThought     = { method = "POST"   , path = "/thoughts"             }
     getThoughts       = { method = "GET"    , path = "/thoughts"             }

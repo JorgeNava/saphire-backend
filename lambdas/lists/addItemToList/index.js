@@ -1,52 +1,59 @@
-const { DynamoDBClient, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
-const client = new DynamoDBClient();
+/**
+ * Lambda — addItemToList
+ * (equivalente a “createListItem”)
+ * CURL example:
+ * curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/lists/{listId}/items \
+ *   -H "Content-Type: application/json" \
+ *   -d '{
+ *     "item":"Nueva tarea pendiente"
+ *   }'
+ */
+
+const AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
+
+const docClient   = new AWS.DynamoDB.DocumentClient();
+const TABLE_NAME  = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {
   try {
-    // Parsear body
-    const { listId, userId, newItem } = JSON.parse(event.body);
-    if (!userId || !listId || !newItem) {
+    const { listId } = event.pathParameters;
+    const { item }   = JSON.parse(event.body);
+
+    if (!listId || !item) {
       return {
         statusCode: 400,
-        body: JSON.stringify({
-          error: 'Faltan datos: userId, listId y newItem son requeridos',
-        }),
+        body: JSON.stringify({ error: "Se requiere listId y item en el cuerpo." })
       };
     }
 
-    // Construir parámetros para UpdateItem usando alias para "items"
+    // Optional: generar un id único para el ítem
+    const itemObj = { itemId: uuidv4(), content: item };
+
+    // Añadir al final del array items
     const params = {
-      TableName: process.env.LISTS_TABLE,
-      Key: {
-        userId: { S: userId },
-        listId: { S: listId },
-      },
-      UpdateExpression: 'SET #items = list_append(if_not_exists(#items, :empty), :it)',
-      ExpressionAttributeNames: {
-        '#items': 'items',
-      },
+      TableName: TABLE_NAME,
+      Key: { listId },
+      UpdateExpression: 'SET items = list_append(if_not_exists(items, :empty), :i), updatedAt = :u',
       ExpressionAttributeValues: {
-        ':it':    { L: [{ S: newItem }] },
-        ':empty': { L: [] },
+        ':i'     : [ itemObj ],
+        ':empty' : [],
+        ':u'     : new Date().toISOString()
       },
-      ReturnValues: 'UPDATED_NEW',
+      ReturnValues: 'ALL_NEW'
     };
 
-    // Ejecutar la actualización
-    const res = await client.send(new UpdateItemCommand(params));
-
-    // Extraer lista actualizada
-    const updated = res.Attributes.items.L.map(x => x.S);
+    const result = await docClient.update(params).promise();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ items: updated }),
+      body: JSON.stringify(result.Attributes)
     };
-  } catch (err) {
-    console.error('Error al actualizar la lista en DynamoDB:', err);
+  } catch (error) {
+    console.error("addItemToList error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno del servidor' }),
+      body: JSON.stringify({ error: "Error al añadir el ítem a la lista." })
     };
   }
 };

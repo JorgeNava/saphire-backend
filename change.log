@@ -1,0 +1,43 @@
+# Changelog
+
+## [0.0.2] – 2025-05-29
+
+### ✨ Añadido
+- Nueva Lambda **`createMessage`** (`POST /messages`): unifica el guardado y clasificación de mensajes de texto con generación automática de `messageId`, `timestamp`, `createdAt/updatedAt`, `tagIds` (IA/manual) y campos de auditoría (`createdBy`, `lastModifiedBy`).  
+- Lambda **`createMessageFromAudio`** (`POST /messages/audio`): transcribe audio (Whisper), clasifica contenido, asigna etiquetas IA/manual, genera IDs y timestamps, y elimina el audio de S3 si `DELETE_AUDIO_AFTER_TRANSCRIBE=true`.  
+- CRUD completo para **Notes**:  
+  - `createNote`  
+  - `getNotes`  
+  - `getNote`  
+  - `updateNote`  
+  - `deleteNote`  
+- CRUD completo para **Tags**:  
+  - `createTag`  
+  - `getTags`  
+  - `getTag`  
+  - `updateTag`  
+  - `deleteTag`  
+- CRUD completo para **Thoughts** con IA de etiquetas:  
+  - `createThought`  
+  - `getThoughts`  
+  - `getThought`  
+  - `updateThought`  
+  - `deleteThought`  
+- Gestión avanzada de **Lists**:  
+  - `createList`, `getLists`, `getList`, `updateList`, `deleteList`  
+  - Sub-recursos para ítems: `addItemToList`, `replaceListItems`, `deleteListItem`  
+- Lambda **`messageIntentIdentification`** (esqueleto en README) para detectar automáticamente si un mensaje debe generar un “thought” o invocar otras acciones.
+
+### 🔄 Renombrado
+- **`generateUploadUrl`** → **`agenerateMessageAudioUploadUrl`** (`GET /messages/upload-url`)  
+- **`saveAudioMessage`** → **`createMessageFromAudio`** (`POST /messages/audio`)
+
+### 📝 Documentación y configuración
+- Actualización de **README.md**:  
+  - Endpoints unificados bajo `/messages`  
+  - Estructura de repositorio y Terraform reflejada con los nuevos lambdas  
+  - Ejemplos de CURL y Postman Collection ajustada  
+- Renovación de la sección de **Variables de entorno** y **GitHub Secrets** según el nuevo `.env`
+
+## [0.0.1] – 2025-05-28
+- Versión inicial con lambdas básicas de texto y audio (`saveTextMessage`, `generateUploadUrl`, `saveAudioMessage`) y CRUD inicial para lists.  

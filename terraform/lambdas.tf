@@ -2,9 +2,8 @@
 
 locals {
   lambda_functions = [
-    "saveTextMessage",
-    "saveAudioMessage",
-    "generateUploadUrl",
+    "createMessageFromAudio",
+    "generateMessageAudioUploadUrl",
     "getMessages",
     "getMessage",
     "updateMessage",
@@ -14,7 +13,6 @@ locals {
     "addItemToList",
     "deleteList",
     "deleteListItem",
-    "replaceListItems",
     "createThought",
     "getThoughts",
     "getThought",

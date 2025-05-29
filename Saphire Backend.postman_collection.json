@@ -9,7 +9,7 @@
       "name": "Messages",
       "item": [
         {
-          "name": "Save Text Message",
+          "name": "Create Text Message",
           "request": {
             "method": "POST",
             "header": [
@@ -17,15 +17,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"text\": \"Mi primer pensamiento\"\n}",
+              "raw": "{\n  \"conversationId\": \"conv123\",\n  \"sender\": \"user123\",\n  \"content\": \"Hola, este es mi mensaje\",\n  \"tagIds\": [\"tag1\",\"tag2\"]\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/messages/text", "host": ["{{API_GATEWAY_URL}}"], "path": ["messages","text"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/messages",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["messages"]
+            }
           },
           "response": []
         },
         {
-          "name": "Save Audio Message",
+          "name": "Create Audio Message",
           "request": {
             "method": "POST",
             "header": [
@@ -33,51 +37,54 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"s3Key\": \"audio123.mp3\"\n}"
+              "raw": "{\n  \"conversationId\": \"conv123\",\n  \"sender\": \"user123\",\n  \"s3Key\": \"audio123.mp3\",\n  \"tagIds\": [\"tag1\"]\n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/messages/audio", "host": ["{{API_GATEWAY_URL}}"], "path": ["messages","audio"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/messages/audio",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["messages","audio"]
+            }
           },
           "response": []
         },
         {
-          "name": "Generate Upload URL",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "url": { "raw": "{{API_GATEWAY_URL}}/messages/upload-url", "host": ["{{API_GATEWAY_URL}}"], "path": ["messages","upload-url"] }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Messages",
+          "name": "Generate Audio Upload URL",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages?userId=user123&inputType=text&usedAI=false",
+              "raw": "{{API_GATEWAY_URL}}/messages/upload-url",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["messages","upload-url"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages by Conversation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/messages?conversationId=conv123",
               "host": ["{{API_GATEWAY_URL}}"],
               "path": ["messages"],
               "query": [
-                { "key": "userId", "value": "user123" },
-                { "key": "inputType", "value": "text" },
-                { "key": "usedAI", "value": "false" }
+                { "key": "conversationId", "value": "conv123" }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get Message",
+          "name": "Get Single Message",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/messages/{{conversationId}}/{{timestamp}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","{{messageId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["messages","{{conversationId}}","{{timestamp}}"]
             }
           },
           "response": []
@@ -91,12 +98,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"classification\": \"reflexión\",\n  \"usedAI\": false\n}"
+              "raw": "{\n  \"sender\": \"user123\",\n  \"content\": \"Mensaje actualizado\",\n  \"tagIds\": [\"tag3\"]\n}"
             },
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
+              "raw": "{{API_GATEWAY_URL}}/messages/{{conversationId}}/{{timestamp}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","{{messageId}}"]
+              "path": ["messages","{{conversationId}}","{{timestamp}}"]
             }
           },
           "response": []
@@ -107,10 +114,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/messages/{{conversationId}}/{{timestamp}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","{{messageId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["messages","{{conversationId}}","{{timestamp}}"]
             }
           },
           "response": []
@@ -129,9 +135,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Idea para proyecto\",\n  \"tags\": [\"idea\"],\n  \"inputType\": \"text\"\n}"
+              "raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Idea para proyecto\",\n  \"tagIds\": [\"idea\"]\n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/thoughts", "host": ["{{API_GATEWAY_URL}}"], "path": ["thoughts"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/thoughts",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["thoughts"]
+            }
           },
           "response": []
         },
@@ -144,7 +154,9 @@
               "raw": "{{API_GATEWAY_URL}}/thoughts?userId=user123",
               "host": ["{{API_GATEWAY_URL}}"],
               "path": ["thoughts"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
             }
           },
           "response": []
@@ -155,10 +167,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts","{{thoughtId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["thoughts","{{thoughtId}}"]
             }
           },
           "response": []
@@ -172,7 +183,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Idea refinada\",\n  \"tags\": [\"idea\",\"refinada\"]\n}"
+              "raw": "{\n  \"content\": \"Idea refinada\",\n  \"tagIds\": [\"idea\",\"refinada\"]\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
@@ -188,10 +199,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts","{{thoughtId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["thoughts","{{thoughtId}}"]
             }
           },
           "response": []
@@ -210,9 +220,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"Compras\",\n  \"tags\": [\"hogar\"],\n  \"items\": [\"Leche\",\"Pan\"]\n}"
+              "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"Compras\",\n  \"items\": [\"Leche\",\"Pan\"],\n  \"tagIds\": [\"hogar\"]\n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/lists", "host": ["{{API_GATEWAY_URL}}"], "path": ["lists"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/lists",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["lists"]
+            }
           },
           "response": []
         },
@@ -225,7 +239,9 @@
               "raw": "{{API_GATEWAY_URL}}/lists?userId=user123",
               "host": ["{{API_GATEWAY_URL}}"],
               "path": ["lists"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
             }
           },
           "response": []
@@ -236,10 +252,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["lists","{{listId}}"]
             }
           },
           "response": []
@@ -253,7 +268,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"Compras semanales\",\n  \"items\": [\"Huevos\",\"Queso\"],\n  \"tags\": [\"hogar\",\"supermercado\"]\n}"
+              "raw": "{\n  \"name\": \"Compras semanales\",\n  \"items\": [\"Huevos\",\"Queso\"],\n  \"tagIds\": [\"hogar\",\"supermercado\"]\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
@@ -269,10 +284,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["lists","{{listId}}"]
             }
           },
           "response": []
@@ -286,7 +300,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"listId\": \"{{listId}}\",\n  \"item\": \"Manzanas\"\n}"
+              "raw": "{\n  \"item\": \"Manzanas\"\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
@@ -305,7 +319,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"listId\": \"{{listId}}\",\n  \"items\": [\"Pan\",\"Leche\"]\n}"
+              "raw": "{\n  \"items\": [\"Pan\",\"Leche\"]\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
@@ -319,17 +333,11 @@
           "name": "Delete List Item",
           "request": {
             "method": "DELETE",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"listId\": \"{{listId}}\",\n  \"item\": \"Pan\"\n}"
-            },
+            "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
+              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items/{{itemId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}","items"]
+              "path": ["lists","{{listId}}","items","{{itemId}}"]
             }
           },
           "response": []
@@ -348,9 +356,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"title\": \"Mi nota\",\n  \"content\": \"Contenido de la nota\",\n  \"tags\": [\"importante\"]\n}"
+              "raw": "{\n  \"userId\": \"user123\",\n  \"title\": \"Mi nota\",\n  \"content\": \"Contenido de la nota\",\n  \"attachmentKeys\": [\"file1.pdf\"],\n  \"tagIds\": [\"importante\"]\n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/notes", "host": ["{{API_GATEWAY_URL}}"], "path": ["notes"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/notes",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["notes"]
+            }
           },
           "response": []
         },
@@ -363,7 +375,9 @@
               "raw": "{{API_GATEWAY_URL}}/notes?userId=user123",
               "host": ["{{API_GATEWAY_URL}}"],
               "path": ["notes"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
             }
           },
           "response": []
@@ -374,10 +388,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes","{{noteId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["notes","{{noteId}}"]
             }
           },
           "response": []
@@ -391,7 +404,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"title\": \"Nota actualizada\",\n  \"content\": \"Contenido modificado\"\n}"
+              "raw": "{\n  \"title\": \"Nota actualizada\",\n  \"content\": \"Contenido modificado\",\n  \"attachmentKeys\": [\"nuevo.pdf\"],\n  \"tagIds\": [\"importante\",\"urgente\"]\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
@@ -407,10 +420,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes","{{noteId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["notes","{{noteId}}"]
             }
           },
           "response": []
@@ -431,7 +443,11 @@
               "mode": "raw",
               "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"urgente\",\n  \"color\": \"#ff0000\"\n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/tags", "host": ["{{API_GATEWAY_URL}}"], "path": ["tags"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/tags",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["tags"]
+            }
           },
           "response": []
         },
@@ -444,7 +460,9 @@
               "raw": "{{API_GATEWAY_URL}}/tags?userId=user123",
               "host": ["{{API_GATEWAY_URL}}"],
               "path": ["tags"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
             }
           },
           "response": []
@@ -455,10 +473,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags","{{tagId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["tags","{{tagId}}"]
             }
           },
           "response": []
@@ -472,7 +489,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"alta prioridad\",\n  \"color\": \"#00ff00\"\n}"
+              "raw": "{\n  \"name\": \"alta prioridad\",\n  \"color\": \"#00ff00\"\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
@@ -488,10 +505,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}?userId=user123",
+              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
               "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags","{{tagId}}"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "path": ["tags","{{tagId}}"]
             }
           },
           "response": []
@@ -512,7 +528,11 @@
               "mode": "raw",
               "raw": "{\n  \"userId\": \"user123\",\n  \"actionType\": \"CREATE_LIST\",\n  \"details\": \"Se creó lista Compras\"\n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/actions", "host": ["{{API_GATEWAY_URL}}"], "path": ["actions"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/actions",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["actions"]
+            }
           },
           "response": []
         },
@@ -525,7 +545,9 @@
               "raw": "{{API_GATEWAY_URL}}/actions?userId=user123",
               "host": ["{{API_GATEWAY_URL}}"],
               "path": ["actions"],
-              "query": [ { "key": "userId", "value": "user123" } ]
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
             }
           },
           "response": []
@@ -544,9 +566,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first\": \"Ana\",\n  \"lastname\": \"García\",\n  \"email\": \"ana@ejemplo.com\",\n  \"password\": \"MiClave123\"\n}"
+              "raw": "{\n  \"first\": \"Ana\",\n  \"lastname\": \"García\",\n  \"email\": \"ana@ejemplo.com\"  \n}"
             },
-            "url": { "raw": "{{API_GATEWAY_URL}}/users", "host": ["{{API_GATEWAY_URL}}"], "path": ["users"] }
+            "url": {
+              "raw": "{{API_GATEWAY_URL}}/users",
+              "host": ["{{API_GATEWAY_URL}}"],
+              "path": ["users"]
+            }
           },
           "response": []
         },
@@ -572,7 +598,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first\": \"Ana\",\n  \"lastname\": \"Sánchez\",\n  \"roles\": [\"admin\"]\n}"
+              "raw": "{\n  \"lastname\": \"Sánchez\",\n  \"roles\": [\"admin\"]\n}"
             },
             "url": {
               "raw": "{{API_GATEWAY_URL}}/users/{{userId}}",
@@ -585,6 +611,13 @@
       ]
     }
   ],
+  "variable": [
+    {
+      "key": "API_GATEWAY_URL",
+      "value": "https://pbtzshi5ji.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    }
+  ],
   "event": [
     {
       "listen": "prerequest",
@@ -593,13 +626,6 @@
     {
       "listen": "test",
       "script": { "type": "text/javascript", "exec": [] }
-    }
-  ],
-  "variable": [
-    {
-      "key": "API_GATEWAY_URL",
-      "value": "https://pbtzshi5ji.execute-api.us-east-1.amazonaws.com/dev",
-      "type": "string"
     }
   ]
 }

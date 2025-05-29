@@ -1,12 +1,41 @@
 /**
- * Lambda — getNotes /notes
- * Implementa la operación getNotes para notes.
- * Runtime: Node.js 18.x
+ * Lambda — getNotes
+ * CURL example:
+ * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/notes?userId=user123"
  */
+
+const AWS = require('aws-sdk');
+const docClient  = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
+const INDEX_NAME = 'GSI-userNotes';
+
 exports.handler = async (event) => {
-  // Lógica de getNotes para notes
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: "notes/getNotes OK" })
-  };
+  try {
+    const { userId } = event.queryStringParameters || {};
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'El query param userId es requerido.' })
+      };
+    }
+
+    const res = await docClient.query({
+      TableName: TABLE_NAME,
+      IndexName: INDEX_NAME,
+      KeyConditionExpression: 'userId = :u',
+      ExpressionAttributeValues: { ':u': userId },
+      ScanIndexForward: true
+    }).promise();
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(res.Items || [])
+    };
+  } catch (err) {
+    console.error('getNotes error:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Error al listar notas.' })
+    };
+  }
 };
