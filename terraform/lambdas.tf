@@ -18,7 +18,6 @@ locals {
     "updateList",
     "deleteList",
     "addItemToList",
-    "replaceListItems",
     "deleteListItem",
     "createThought",
     "getThoughts",

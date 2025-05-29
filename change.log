@@ -51,7 +51,7 @@
   - `deleteThought`  
 - Gestión avanzada de **Lists**:  
   - `createList`, `getLists`, `getList`, `updateList`, `deleteList`  
-  - Sub-recursos para ítems: `addItemToList`, `replaceListItems`, `deleteListItem`  
+  - Sub-recursos para ítems: `addItemToList`, `deleteListItem`  
 - Lambda **`messageIntentIdentification`** (esqueleto en README) para detectar automáticamente si un mensaje debe generar un “thought” o invocar otras acciones.
 
 ### 🔄 Renombrado
