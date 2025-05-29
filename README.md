@@ -2,7 +2,7 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Version actual del backend:*** 0.0.2
+***Version actual del backend:*** 0.0.3
 
 ---
 
@@ -186,14 +186,26 @@ GITHUB_ACCESS_TOKEN=
 
 ### En GitHub Secrets
 
-| Nombre                     | Descripción                                                 |
-| -------------------------- | ----------------------------------------------------------- |
-| `AWS_ACCESS_KEY_ID`        | IAM user/role con permisos de infraestructura y API Gateway |
-| `AWS_SECRET_ACCESS_KEY`    | Secret Key correspondiente                                  |
-| `AWS_S3_ACCESS_KEY_ID`     | IAM user/role con permisos sobre los buckets S3             |
-| `AWS_S3_SECRET_ACCESS_KEY` | Secret Key correspondiente para S3                          |
-| `OPENAI_API_KEY_AWS_USE`   | Clave API de OpenAI                                         |
+Para que tu CI/CD y tus Lambdas en AWS reciban en tiempo de ejecución las mismas variables que defines localmente en tu `.env`, debes **duplicar cada par clave‐valor** en los *GitHub Secrets* de tu repositorio. Así tus workflows podrán inyectar esos valores de forma segura sin exponerlos en el código.
 
+#### Pasos recomendados
+
+1. **Abrir la configuración** de tu repositorio en GitHub.
+2. Navegar a **Settings → Secrets and variables → Actions**.
+3. Hacer clic en **“New repository secret”**.
+4. Por cada variable de tu `.env`, crea un secret con el **mismo nombre** (por ejemplo `AWS_REGION`, `OPENAI_API_KEY_AWS_USE`, `AWS_S3_MESSAGE_ATTACHMENTS_BUCKET`, etc.) y pégale el valor correspondiente.
+5. Repite hasta haber añadido todas las variables listadas en tu `.env`:
+   * `APP_NAME`
+   * `APP_VERSION`
+   * `APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE`
+   * `AWS_REGION`
+   * `AWS_ACCESS_KEY_ID`
+   * `AWS_SECRET_ACCESS_KEY`
+   * `AWS_DYNAMODB_TABLE_MESSAGES`
+   * …y así con cada tabla, bucket, clave de OpenAI y token de GitHub.
+6. Una vez guardados, tu workflow de GitHub Actions podrá referirse a ellos como `${{ secrets.NOMBRE_DEL_SECRET }}` y pasarlos a Terraform o a AWS CLI sin riesgo de fuga.
+
+De este modo, la sección de **“En GitHub Secrets”** de tu README servirá como guía práctica para cualquier colaborador que deba replicar en su fork o en un nuevo entorno la configuración completa de variables de entorno.
 
 ---
 

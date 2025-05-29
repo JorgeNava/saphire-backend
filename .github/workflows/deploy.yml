@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy Infra y Lambdas
 
 on:
@@ -43,7 +42,6 @@ jobs:
               fn=$(basename "$dir")
               zip_dir=build/${TABLE_PREFIX}-${fn}
               mkdir -p "$zip_dir"
-              # Copia todo, incluidos dotfiles, sin fallar si está vacío
               cp -r "${dir}/." "$zip_dir/"
               pushd "$zip_dir"
                 npm install --omit=dev
@@ -58,7 +56,28 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      # 6) Terraform Init con backend configurado vía CLI
+      # 6) Generar terraform.tfvars con los secrets
+      - name: Generate terraform.tfvars
+        working-directory: ./terraform
+        run: |
+          cat > terraform.tfvars <<EOF
+          aws_region                          = "${{ env.AWS_REGION }}"
+          table_prefix                        = "${{ env.TABLE_PREFIX }}"
+          aws_dynamodb_table_messages         = "${{ secrets.AWS_DYNAMODB_TABLE_MESSAGES }}"
+          aws_dynamodb_table_tags             = "${{ secrets.AWS_DYNAMODB_TABLE_TAGS }}"
+          aws_dynamodb_table_lists            = "${{ secrets.AWS_DYNAMODB_TABLE_LISTS }}"
+          aws_dynamodb_table_users            = "${{ secrets.AWS_DYNAMODB_TABLE_USERS }}"
+          aws_dynamodb_table_notes            = "${{ secrets.AWS_DYNAMODB_TABLE_NOTES }}"
+          aws_dynamodb_table_thoughts         = "${{ secrets.AWS_DYNAMODB_TABLE_THOUGHTS }}"
+          aws_dynamodb_table_actions_log      = "${{ secrets.AWS_DYNAMODB_TABLE_ACTIONS_LOG }}"
+          aws_s3_message_attachments_bucket   = "${{ secrets.AWS_S3_MESSAGE_ATTACHMENTS_BUCKET }}"
+          aws_s3_notes_attachments_bucket     = "${{ secrets.AWS_S3_NOTES_ATTACHMENTS_BUCKET }}"
+          openai_api_base_url                 = "${{ secrets.OPENAI_API_BASE_URL }}"
+          openai_api_key_aws_use              = "${{ secrets.OPENAI_API_KEY_AWS_USE }}"
+          app_feature_flag_delete_audio_after_transcribe = "${{ secrets.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE }}"
+          EOF
+
+      # 7) Terraform Init con backend configurado vía CLI
       - name: Terraform Init
         working-directory: ./terraform
         run: |
@@ -69,12 +88,12 @@ jobs:
             -backend-config="dynamodb_table=zafira-terraform-locks" \
             -backend-config="encrypt=true"
 
-      # 7) (Opcional) Verifica cambios
+      # 8) (Opcional) Verifica cambios
       - name: Terraform Plan
         working-directory: ./terraform
         run: terraform plan -out=tfplan
 
-      # 8) Aplica la infraestructura
+      # 9) Aplica la infraestructura
       - name: Terraform Apply
         working-directory: ./terraform
         run: terraform apply -auto-approve tfplan

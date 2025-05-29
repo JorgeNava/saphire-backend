@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.3] – 2025-05-29
+
+### 🛠️ Infraestructura y despliegue
+- **variables.tf**  
+  - Añadidas variables para todas las tablas de DynamoDB (`aws_dynamodb_table_messages`, `aws_dynamodb_table_tags`, etc.), buckets S3 (`aws_s3_message_attachments_bucket`, `aws_s3_notes_attachments_bucket`), OpenAI (`openai_api_base_url`, `openai_api_key_aws_use`) y flag de borrado de audio (`app_feature_flag_delete_audio_after_transcribe`).
+- **locals.tf**  
+  - Introducido `local.prefix` derivado de `var.table_prefix`, para unificar el prefijo de nombres en recursos y Lambdas.
+- **lambdas.tf**  
+  - Bloque `environment.variables` actualizado en cada `aws_lambda_function` para inyectar todas las claves necesarias en `process.env`.
+- **.github/workflows/deploy.yml**  
+  - Nuevo paso “Generate terraform.tfvars” que extrae los valores de los GitHub Secrets y genera un archivo `terraform.tfvars` antes de `terraform init`.
+  - Garantiza que Terraform reciba desde Actions los mismos valores que el `.env` local.
+
+### 📖 Documentación
+- **README.md**  
+  - Se actualiza la sección **Variables de entorno (app + Lambdas)** para reflejar los nuevos nombres y agrupaciones.
+  - Se extiende **“En GitHub Secrets”** con instrucciones paso a paso para reproducir el `.env` en los Secrets del repositorio.
+- **Changelog**  
+  - Se añade la entrada para la versión 0.0.3.
+
+### 🔄 Renombrados y ajustes menores
+- Se armonizaron nombres de variables entre `.env`, Terraform y código (`OPENAI_API_BASE_URL`, `DELETE_AUDIO_AFTER_TRANSCRIBE`, etc.).
+- Corrección de rutas y nombres en el bucle de empaquetado de Lambdas para usar `local.prefix`.  
+
+---
+
 ## [0.0.2] – 2025-05-29
 
 ### ✨ Añadido
