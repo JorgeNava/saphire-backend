@@ -82,6 +82,11 @@ variable "lambda_name_perform_research" {
   type        = string
   default     = "performResearch"
 }
+variable "lambda_name_message_intent_identification" {
+  description = "Nombre de la Lambda para identificar intenciones en mensajes"
+  type        = string
+  default     = "messageIntentIdentification"
+}
 
 # ——————————————
 # OpenAI y flags de la aplicación

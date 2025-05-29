@@ -84,6 +84,7 @@ resource "aws_lambda_function" "all" {
       LAMBDA_NAME_CREATE_THOUGHT            = var.lambda_name_create_thought
       LAMBDA_NAME_CREATE_LIST_THROUGH_AI    = var.lambda_name_create_list_through_ai
       LAMBDA_NAME_PERFORM_RESEARCH          = var.lambda_name_perform_research
+      LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION = var.lambda_name_message_intent_identification
       APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE = var.app_feature_flag_delete_audio_after_transcribe ? "true" : "false"
     }
   }

@@ -77,6 +77,7 @@ jobs:
           lambda_name_create_thought          = "${{ secrets.LAMBDA_NAME_CREATE_THOUGHT }}"
           lambda_name_create_list_through_ai  = "${{ secrets.LAMBDA_NAME_CREATE_LIST_THROUGH_AI }}"
           lambda_name_perform_research        = "${{ secrets.LAMBDA_NAME_PERFORM_RESEARCH }}"
+          lambda_name_message_intent_identification = "${{ secrets.LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION }}"
           app_feature_flag_delete_audio_after_transcribe = "${{ secrets.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE }}"
           EOF
 
