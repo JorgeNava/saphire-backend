@@ -34,6 +34,7 @@ locals {
     getMessage        = { method = "GET"    , path = "/messages/{messageId}" }
     updateMessage     = { method = "PUT"    , path = "/messages/{messageId}" }
     deleteMessage     = { method = "DELETE" , path = "/messages/{messageId}" }
+    messageIntentIdentification = { method = "POST"   , path = "/messages/intent-identification" }
     createList        = { method = "POST"   , path = "/lists"                }
     getList           = { method = "GET"    , path = "/lists/{listId}"       }
     getLists          = { method = "GET"    , path = "/lists"                }
@@ -59,6 +60,8 @@ locals {
     recordAction      = { method = "POST"   , path = "/actions"              }
     getActions        = { method = "GET"    , path = "/actions"              }
     createUser        = { method = "POST"   , path = "/users"                }
+    createListThroughAI = { method = "POST"   , path = "/actions/create-list-through-ai" }
+    performResearch   = { method = "POST"   , path = "/actions/perform-research" }
     getUser           = { method = "GET"    , path = "/users/{userId}"       }
     updateUser        = { method = "PUT"    , path = "/users/{userId}"       }
   }

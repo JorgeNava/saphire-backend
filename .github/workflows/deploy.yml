@@ -74,6 +74,9 @@ jobs:
           aws_s3_notes_attachments_bucket     = "${{ secrets.AWS_S3_NOTES_ATTACHMENTS_BUCKET }}"
           openai_api_base_url                 = "${{ secrets.OPENAI_API_BASE_URL }}"
           openai_api_key_aws_use              = "${{ secrets.OPENAI_API_KEY_AWS_USE }}"
+          lambda_name_create_thought          = "${{ secrets.LAMBDA_NAME_CREATE_THOUGHT }}"
+          lambda_name_create_list_through_ai  = "${{ secrets.LAMBDA_NAME_CREATE_LIST_THROUGH_AI }}"
+          lambda_name_perform_research        = "${{ secrets.LAMBDA_NAME_PERFORM_RESEARCH }}"
           app_feature_flag_delete_audio_after_transcribe = "${{ secrets.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE }}"
           EOF
 

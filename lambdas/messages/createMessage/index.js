@@ -1,58 +1,22 @@
 /**
  * Lambda — createMessage
- * CURL example:
- * curl -X POST https://{api-id}.execute-api.{region}.amazonaws.com/messages \
- *   -H "Content-Type: application/json" \
- *   -d '{
- *     "conversationId":"conv123",
- *     "sender":"user123",
- *     "content":"¡Hola, mundo!",
- *     // opcional: "tagIds":["tag1","tag2"]
- *   }'
+ * POST /messages
+ * Guarda el mensaje con su intent identificado.
  */
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-const docClient  = new AWS.DynamoDB.DocumentClient();
-const MSG_TABLE  = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
-const TAGS_TABLE = process.env.AWS_DYNAMODB_TABLE_TAGS;
-const OPENAI_API_ENDPOINT = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
-const OPENAI_KEY = process.env.OPENAI_API_KEY_AWS_USE;
+const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const lambda    = new AWS.Lambda({ region: process.env.AWS_REGION });
 
-async function classifyTags(text, sender, existingNames) {
-  const resp = await fetch(OPENAI_API_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENAI_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `Eres un clasificador de etiquetas para mensajes de ${sender}.
-Las etiquetas existentes son: ${existingNames.join(', ')}.
-Si ninguna aplica, sugiere hasta dos nuevas en una sola palabra, separadas por coma.
-Solo responde con nombres separados por comas.`
-        },
-        { role: 'user', content: text }
-      ],
-      max_tokens: 20
-    })
-  });
-  const data = await resp.json();
-  const content = data.choices?.[0]?.message?.content || '';
-  return content
-    .split(',')
-    .map(s => s.trim().toLowerCase())
-    .filter(Boolean);
-}
+const MSG_TABLE     = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
+const INTENT_LAMBDA = process.env.MESSAGE_INTENT_LAMBDA_NAME;
 
 exports.handler = async (event) => {
   try {
-    const { conversationId, sender, content, tagIds } = JSON.parse(event.body);
+    // 1) Parsear y validar entrada
+    const { conversationId, sender, content } = JSON.parse(event.body || '{}');
     if (!conversationId || !sender || !content) {
       return {
         statusCode: 400,
@@ -60,55 +24,41 @@ exports.handler = async (event) => {
       };
     }
 
-    // 1) Leemos todas las etiquetas actuales
-    const tagsData = await docClient.scan({
-      TableName: TAGS_TABLE,
-      ProjectionExpression: 'tagId, #n',
-      ExpressionAttributeNames: { '#n': 'name' }
+    // 2) Llamar a la Lambda de identificación de intent de forma síncrona
+    const intentRes = await lambda.invoke({
+      FunctionName:   INTENT_LAMBDA,
+      InvocationType: 'RequestResponse',
+      Payload:        JSON.stringify({ sender, content })
     }).promise();
-    const existing = tagsData.Items || [];
-    const names    = existing.map(t => t.name);
 
-    // 2) Calculamos tagIds finales
-    let finalTagIds = tagIds;
-    let usedAI = false;
-    let createdBy = sender;
-    if (!Array.isArray(tagIds) || tagIds.length === 0) {
-      const chosen = await classifyTags(content, sender, names);
-      finalTagIds = existing
-        .filter(t => chosen.includes(t.name.toLowerCase()))
-        .map(t => t.tagId);
-      usedAI = true;
-      createdBy = 'AI';
-    }
+    const { intent } = JSON.parse(intentRes.Payload);
 
-    // 3) Creamos y guardamos el mensaje
-    const messageId   = uuidv4();
-    const timestamp   = new Date().toISOString();
+    // 3) Construir y guardar el mensaje en DynamoDB
+    const messageId = uuidv4();
+    const timestamp = new Date().toISOString();
     const item = {
       conversationId,
-      timestamp,
       messageId,
+      timestamp,
       sender,
       content,
-      inputType:      'text',
-      createdAt:      timestamp,
-      updatedAt:      timestamp,
-      tagIds:         finalTagIds,
-      usedAI,
-      createdBy,
-      lastModifiedBy: createdBy
+      intent,
+      inputType: 'text',
+      createdAt: timestamp,
+      updatedAt: timestamp
     };
 
     await docClient.put({
       TableName: MSG_TABLE,
-      Item: item
+      Item:      item
     }).promise();
 
+    // 4) Responder al cliente
     return {
       statusCode: 201,
       body: JSON.stringify(item)
     };
+
   } catch (err) {
     console.error('createMessage error:', err);
     return {
