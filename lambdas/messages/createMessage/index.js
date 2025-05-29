@@ -11,7 +11,7 @@ const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGI
 const lambda    = new AWS.Lambda({ region: process.env.AWS_REGION });
 
 const MSG_TABLE        = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
-const INTENT_LAMBDA    = process.env.MESSAGE_INTENT_LAMBDA_NAME;
+const INTENT_LAMBDA    = process.env.LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION;
 
 exports.handler = async (event) => {
   try {
