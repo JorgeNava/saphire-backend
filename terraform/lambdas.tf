@@ -53,7 +53,6 @@ resource "aws_lambda_function" "all" {
 
   environment {
     variables = {
-      AWS_REGION                     = var.aws_region
       TABLE_PREFIX                   = var.table_prefix
       DYNAMO_TABLE                   = var.aws_dynamodb_table_messages
       TAGS_TABLE                     = var.aws_dynamodb_table_tags
