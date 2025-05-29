@@ -193,7 +193,6 @@ GITHUB_ACCESS_TOKEN=
 | `AWS_S3_ACCESS_KEY_ID`     | IAM user/role con permisos sobre los buckets S3             |
 | `AWS_S3_SECRET_ACCESS_KEY` | Secret Key correspondiente para S3                          |
 | `OPENAI_API_KEY_AWS_USE`   | Clave API de OpenAI                                         |
-| `GITHUB_ACCESS_TOKEN`      | Token de acceso para GitHub Actions                         |
 
 
 ---

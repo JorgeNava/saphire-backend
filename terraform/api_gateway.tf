@@ -4,7 +4,8 @@
 # 1. HTTP API
 #################################################################
 resource "aws_apigatewayv2_api" "http_api" {
-  name          = "${var.table_prefix}-HTTP-API"
+  name          = "${var.table_prefix}-Backend-Gateway"
+  description   = "API Gateway for the backend services"
   protocol_type = "HTTP"
 }
 
