@@ -7,7 +7,6 @@
     "@aws-sdk/client-s3": "^3.541.0",
     "aws-sdk": "^2.1349.0",
     "form-data": "^4.0.2",
-    "node-fetch": "^2.7.0",
     "uuid": "^9.0.0"
   }
 }

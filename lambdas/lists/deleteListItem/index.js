@@ -5,8 +5,8 @@
  */
 
 const AWS = require('aws-sdk');
-const docClient   = new AWS.DynamoDB.DocumentClient();
-const TABLE_NAME  = process.env.AWS_DYNAMODB_TABLE_LISTS;
+const docClient  = new AWS.DynamoDB.DocumentClient();
+const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {
   try {
@@ -34,15 +34,19 @@ exports.handler = async (event) => {
 
     // 2) Filtramos el ítem a eliminar
     const newItems = (Item.items || []).filter(i => i.itemId !== itemId);
+    const now      = new Date().toISOString();
 
-    // 3) Actualizamos el array completo
+    // 3) Actualizamos el array completo usando alias para 'items'
     const params = {
       TableName: TABLE_NAME,
-      Key: { listId },
-      UpdateExpression: 'SET items = :items, updatedAt = :u',
+      Key:       { listId },
+      UpdateExpression: 'SET #it = :items, updatedAt = :u',
+      ExpressionAttributeNames: {
+        '#it': 'items'
+      },
       ExpressionAttributeValues: {
         ':items': newItems,
-        ':u'    : new Date().toISOString()
+        ':u'    : now
       },
       ReturnValues: 'ALL_NEW'
     };

@@ -13,7 +13,6 @@
 
 const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const FormData     = require('form-data');
-const fetch        = require('node-fetch');
 const AWS          = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 

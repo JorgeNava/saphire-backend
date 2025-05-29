@@ -13,9 +13,8 @@
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
-const fetch = require('node-fetch');
 
-const docClient  = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const docClient  = new AWS.DynamoDB.DocumentClient();
 const MSG_TABLE  = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const TAGS_TABLE = process.env.AWS_DYNAMODB_TABLE_TAGS;
 const OPENAI_API_ENDPOINT = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
@@ -92,10 +91,10 @@ exports.handler = async (event) => {
       messageId,
       sender,
       content,
-      inputType:    'text',
-      createdAt:    timestamp,
-      updatedAt:    timestamp,
-      tagIds:       finalTagIds,
+      inputType:      'text',
+      createdAt:      timestamp,
+      updatedAt:      timestamp,
+      tagIds:         finalTagIds,
       usedAI,
       createdBy,
       lastModifiedBy: createdBy
