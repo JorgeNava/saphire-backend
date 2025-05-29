@@ -58,19 +58,19 @@ resource "aws_lambda_function" "all" {
 
   environment {
     variables = {
-      TABLE_PREFIX                  = var.table_prefix
-      DYNAMO_TABLE                  = var.aws_dynamodb_table_messages
-      TAGS_TABLE                    = var.aws_dynamodb_table_tags
-      LISTS_TABLE                   = var.aws_dynamodb_table_lists
-      USERS_TABLE                   = var.aws_dynamodb_table_users
-      NOTES_TABLE                   = var.aws_dynamodb_table_notes
-      THOUGHTS_TABLE                = var.aws_dynamodb_table_thoughts
-      ACTIONS_LOG_TABLE             = var.aws_dynamodb_table_actions_log
-      AUDIO_BUCKET                  = var.aws_s3_message_attachments_bucket
-      NOTES_ATTACHMENTS_BUCKET      = var.aws_s3_notes_attachments_bucket
-      OPENAI_API_BASE_URL           = var.openai_api_base_url
-      OPENAI_API_KEY_AWS_USE        = var.openai_api_key_aws_use
-      DELETE_AUDIO_AFTER_TRANSCRIBE = var.app_feature_flag_delete_audio_after_transcribe ? "true" : "false"
+      TABLE_PREFIX                               = var.table_prefix
+      AWS_DYNAMODB_TABLE_MESSAGES                = var.aws_dynamodb_table_messages
+      AWS_DYNAMODB_TABLE_TAGS                    = var.aws_dynamodb_table_tags
+      AWS_DYNAMODB_TABLE_LISTS                   = var.aws_dynamodb_table_lists
+      AWS_DYNAMODB_TABLE_USERS                   = var.aws_dynamodb_table_users
+      AWS_DYNAMODB_TABLE_NOTES                   = var.aws_dynamodb_table_notes
+      AWS_DYNAMODB_TABLE_THOUGHTS                = var.aws_dynamodb_table_thoughts
+      AWS_DYNAMODB_TABLE_ACTIONS_LOG             = var.aws_dynamodb_table_actions_log
+      AWS_S3_MESSAGE_ATTACHMENTS_BUCKET          = var.aws_s3_message_attachments_bucket
+      AWS_S3_NOTES_ATTACHMENTS_BUCKET            = var.aws_s3_notes_attachments_bucket
+      OPENAI_API_BASE_URL                       = var.openai_api_base_url
+      OPENAI_API_KEY_AWS_USE                    = var.openai_api_key_aws_use
+      APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE             = var.app_feature_flag_delete_audio_after_transcribe ? "true" : "false"
     }
   }
 
