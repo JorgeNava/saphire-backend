@@ -2,6 +2,7 @@
 
 locals {
   lambda_functions = [
+    "createMessage",
     "createMessageFromAudio",
     "generateMessageAudioUploadUrl",
     "getMessages",

@@ -27,6 +27,7 @@ resource "aws_apigatewayv2_integration" "lambda" {
 #################################################################
 locals {
   routes = {
+    createMessage  = { method = "POST"   , path = "/messages"        }
     createMessageFromAudio  = { method = "POST"   , path = "/messages/audio"        }
     generateMessageAudioUploadUrl = { method = "POST"   , path = "/messages/upload-url"   }
     getMessages       = { method = "GET"    , path = "/messages"             }
