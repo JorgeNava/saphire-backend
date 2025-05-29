@@ -4,16 +4,6 @@
 # junto con la política IAM para que las Lambdas puedan PUT/GET/DELETE objetos.
 ###############################################################################
 
-# Variables (defínelas también en variables.tf si aún no existen)
-variable "aws_s3_message_attachments_bucket" {
-  description = "Bucket S3 para archivos de audio de mensajes"
-  type        = string
-}
-variable "aws_s3_notes_attachments_bucket" {
-  description = "Bucket S3 para attachments de notas"
-  type        = string
-}
-
 # Bucket para attachments de mensajes
 resource "aws_s3_bucket" "message_attachments" {
   bucket        = var.aws_s3_message_attachments_bucket
