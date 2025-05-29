@@ -8,7 +8,6 @@ locals {
   lambda_execution_role_name = "${var.table_prefix}-lambda-exec-role"
 }
 
-# 2) IAM Role para Lambda
 resource "aws_iam_role" "lambda_exec" {
   name = local.lambda_execution_role_name
 
@@ -23,13 +22,13 @@ resource "aws_iam_role" "lambda_exec" {
   })
 }
 
-# 3) Permisos básicos de logging
+# Permisos básicos de CloudWatch Logs
 resource "aws_iam_role_policy_attachment" "lambda_logging" {
   role       = aws_iam_role.lambda_exec.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# 4) Permisos para acceso a DynamoDB (tablas e índices)
+# Acceso a DynamoDB
 resource "aws_iam_role_policy" "lambda_ddb_access" {
   name = "${var.table_prefix}-lambda-ddb-access"
   role = aws_iam_role.lambda_exec.id
@@ -37,7 +36,6 @@ resource "aws_iam_role_policy" "lambda_ddb_access" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
       Action = [
         "dynamodb:PutItem",
         "dynamodb:GetItem",
@@ -46,25 +44,39 @@ resource "aws_iam_role_policy" "lambda_ddb_access" {
         "dynamodb:Scan",
         "dynamodb:Query"
       ]
+      Effect   = "Allow"
       Resource = [
-        # Tablas principales
         aws_dynamodb_table.users.arn,
         aws_dynamodb_table.messages.arn,
         aws_dynamodb_table.thoughts.arn,
         aws_dynamodb_table.lists.arn,
         aws_dynamodb_table.notes.arn,
         aws_dynamodb_table.tags.arn,
-        aws_dynamodb_table.actions_log.arn,
-
-        # Índices globales necesarios (wildcard para incluir cualquier GSI)
-        "${aws_dynamodb_table.users.arn}/index/*",
-        "${aws_dynamodb_table.messages.arn}/index/*",
-        "${aws_dynamodb_table.thoughts.arn}/index/*",
-        "${aws_dynamodb_table.lists.arn}/index/*",
-        "${aws_dynamodb_table.notes.arn}/index/*",
-        "${aws_dynamodb_table.tags.arn}/index/*",
-        "${aws_dynamodb_table.actions_log.arn}/index/*"
+        aws_dynamodb_table.actions_log.arn
       ]
     }]
+  })
+}
+
+# Permiso para invocar otras Lambdas (ej. tu intent-identifier y las 3 dispatch)
+resource "aws_iam_role_policy" "lambda_invoke" {
+  name = "${var.table_prefix}-lambda-invoke-others"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "lambda:InvokeFunction"
+        # Puedes usar ARN exacto o wildcard para todas tus funciones:
+        Resource = [
+          aws_lambda_function.all["messageIntentIdentification"].arn,
+          aws_lambda_function.all["createThought"].arn,
+          aws_lambda_function.all["createListThroughAI"].arn,
+          aws_lambda_function.all["performResearch"].arn
+        ]
+      }
+    ]
   })
 }
