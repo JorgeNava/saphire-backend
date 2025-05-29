@@ -39,7 +39,7 @@ locals {
     getLists          = { method = "GET"    , path = "/lists"                }
     addItemToList     = { method = "POST"   , path = "/lists/{listId}/items" }
     updateList        = { method = "PUT"    , path = "/lists/{listId}"       }
-    deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{item}" }
+    deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{itemId}" }
     deleteList        = { method = "DELETE" , path = "/lists/{listId}"       }
     createThought     = { method = "POST"   , path = "/thoughts"             }
     getThoughts       = { method = "GET"    , path = "/thoughts"             }

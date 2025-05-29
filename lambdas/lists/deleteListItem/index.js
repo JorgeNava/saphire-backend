@@ -1,23 +1,21 @@
 /**
  * Lambda — deleteListItem
  * CURL example:
- * curl -X DELETE \
- *   "https://{api-id}.execute-api.{region}.amazonaws.com/lists/{listId}/items/{encodeURIComponent(itemContent)}"
+ * curl -X DELETE https://{api-id}.execute-api.{region}.amazonaws.com/lists/{listId}/items/{itemId}
  */
 
 const AWS = require('aws-sdk');
-const docClient  = new AWS.DynamoDB.DocumentClient();
-const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_LISTS;
+const docClient   = new AWS.DynamoDB.DocumentClient();
+const TABLE_NAME  = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {
   try {
-    const { listId, itemContent } = event.pathParameters;
-    const decodedContent = decodeURIComponent(itemContent);
+    const { listId, itemId } = event.pathParameters;
 
-    if (!listId || !decodedContent) {
+    if (!listId || !itemId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Se requieren listId y itemContent en la ruta." })
+        body: JSON.stringify({ error: "Se requieren listId e itemId en la ruta." })
       };
     }
 
@@ -34,17 +32,14 @@ exports.handler = async (event) => {
       };
     }
 
-    // 2) Filtramos por content en lugar de itemId
-    const newItems = (Item.items || []).filter(i => i.content !== decodedContent);
+    // 2) Filtramos el ítem a eliminar
+    const newItems = (Item.items || []).filter(i => i.itemId !== itemId);
 
-    // 3) Actualizamos el array completo (nombra #items para evitar reserved word)
+    // 3) Actualizamos el array completo
     const params = {
       TableName: TABLE_NAME,
       Key: { listId },
-      UpdateExpression: 'SET #items = :items, updatedAt = :u',
-      ExpressionAttributeNames: {
-        '#items': 'items'
-      },
+      UpdateExpression: 'SET items = :items, updatedAt = :u',
       ExpressionAttributeValues: {
         ':items': newItems,
         ':u'    : new Date().toISOString()
@@ -58,7 +53,6 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify(result.Attributes)
     };
-
   } catch (error) {
     console.error("deleteListItem error:", error);
     return {
