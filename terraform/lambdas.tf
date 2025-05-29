@@ -40,6 +40,9 @@ locals {
     "createUser",
     "getUser",
     "updateUser",
+    "performResearch",
+    "createListThroughAI",
+    "messageIntentIdentification"
   ]
 
   # Lista de Lambdas que requieren más tiempo y memoria
