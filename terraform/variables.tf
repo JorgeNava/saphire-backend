@@ -64,6 +64,24 @@ variable "aws_s3_notes_attachments_bucket" {
   description = "Bucket S3 para almacenar attachments de notas"
   type        = string
 }
+# ——————————————
+# Lambdas
+# ——————————————
+variable "lambda_name_create_thought" {
+  description = "Nombre de la Lambda para crear pensamientos"
+  type        = string
+  default     = "createThought"
+}
+variable "lambda_name_create_list_through_ai" {
+  description = "Nombre de la Lambda para crear listas a través de AI"
+  type        = string
+  default     = "createListThroughAI"
+}
+variable "lambda_name_perform_research" {
+  description = "Nombre de la Lambda para realizar investigaciones"
+  type        = string
+  default     = "performResearch"
+}
 
 # ——————————————
 # OpenAI y flags de la aplicación
