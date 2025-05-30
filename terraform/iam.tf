@@ -1,9 +1,12 @@
 ###############################################################################
 # iam.tf
-# Define el rol que usan las Lambdas y sus políticas de acceso a DynamoDB & CloudWatch
+# Define el rol que usan las Lambdas y sus políticas de acceso:
+#  - CloudWatch Logs
+#  - DynamoDB (Get/Put/Update/Delete/Query/Scan)
+#  - Lambda:InvokeFunction para disparar otras Lambdas
 ###############################################################################
 
-# Obtiene la cuenta actual para interpolar en los ARNs
+# 0) Datos de cuenta actual
 data "aws_caller_identity" "current" {}
 
 # 1) Rol de ejecución para Lambda
@@ -29,8 +32,8 @@ resource "aws_iam_role_policy" "lambda_logs" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
@@ -60,11 +63,28 @@ resource "aws_iam_role_policy" "lambda_ddb_access" {
           "dynamodb:Scan"
         ]
         Resource = [
-          # Todas las tablas cuyo nombre empiece con el prefijo configurado
+          # Todas las tablas con tu prefijo
           "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.table_prefix}-*",
-          # Todos los índices (GSI) de esas tablas
+          # Todos los índices GSI
           "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.table_prefix}-*/index/*"
         ]
+      }
+    ]
+  })
+}
+
+# 4) Permiso para invocar otras Lambdas (InvokeFunction)
+resource "aws_iam_role_policy" "lambda_invoke" {
+  name = "${var.table_prefix}-lambda-invoke"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "lambda:InvokeFunction"
+        Resource = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.prefix}-*"
       }
     ]
   })
