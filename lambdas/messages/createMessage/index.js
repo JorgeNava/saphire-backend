@@ -56,7 +56,9 @@ exports.handler = async (event) => {
         })
         .promise();
 
-      const { intent } = JSON.parse(resp.Payload);
+      const payload = JSON.parse(resp.Payload);
+      const body    = JSON.parse(payload.body || '{}');
+      const intent  = body.intent || 'thought';
       
       // 3) Actualizar únicamente el campo `intent` (y `updatedAt`)
       const now = new Date().toISOString();
