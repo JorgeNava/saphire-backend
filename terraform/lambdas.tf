@@ -48,7 +48,11 @@ locals {
   # Lista de Lambdas que requieren más tiempo y memoria
   heavy_functions = [
     "createMessage",
-    "createMessageFromAudio"
+    "createMessageFromAudio",
+    "messageIntentIdentification",
+    "createThought",
+    "createListThroughAI",
+    "performResearch"
   ]
 }
 

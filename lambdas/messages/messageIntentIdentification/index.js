@@ -5,7 +5,6 @@
  */
 
 const AWS   = require('aws-sdk');
-const fetch = require('node-fetch');
 
 const lambda      = new AWS.Lambda({ region: process.env.AWS_REGION });
 const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
