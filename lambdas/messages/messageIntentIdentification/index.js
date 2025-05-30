@@ -19,7 +19,11 @@ const DISPATCH = {
 
 exports.handler = async (event) => {
   try {
-    const { sender, content } = JSON.parse(event.body || '{}');
+    const payload = typeof event === 'string'
+      ? JSON.parse(event)
+      : event || {};
+
+    const { sender, content } = payload;
     if (!sender || !content) {
       return { statusCode: 400, body: JSON.stringify({ error: 'sender y content son requeridos.' }) };
     }
