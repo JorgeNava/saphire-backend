@@ -1,645 +1,959 @@
 {
-  "info": {
-    "_postman_id": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
-    "name": "Saphire Backend",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Messages",
-      "item": [
-        {
-          "name": "Create Text Message",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"conversationId\": \"conv123\",\n  \"sender\": \"user123\",\n  \"content\": \"Hola, este es mi mensaje\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages"]
-            }
-          }
-        },
-        {
-          "name": "Create Audio Message",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"conversationId\": \"conv123\",\n  \"sender\": \"user123\",\n  \"s3Key\": \"audio123.mp3\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/audio",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","audio"]
-            }
-          }
-        },
-        {
-          "name": "Generate Audio Upload URL",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/upload-url",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","upload-url"]
-            }
-          }
-        },
-        {
-          "name": "Identify Message Intent",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"sender\": \"user123\",\n  \"content\": \"Necesito una lista de compras: leche, pan, huevos\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/intent-identification",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","intent-identification"]
-            }
-          }
-        },
-        {
-          "name": "Get Messages",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages?conversationId=conv123&sender=user123&usedAI=false",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages"],
-              "query": [
-                { "key": "conversationId", "value": "conv123" },
-                { "key": "sender", "value": "user123" },
-                { "key": "usedAI", "value": "false" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Single Message",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","{{messageId}}"]
-            }
-          }
-        },
-        {
-          "name": "Update Message",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"sender\": \"user123\",\n  \"content\": \"Mensaje actualizado\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","{{messageId}}"]
-            }
-          }
-        },
-        {
-          "name": "Delete Message",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["messages","{{messageId}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Thoughts",
-      "item": [
-        {
-          "name": "Create Thought",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Idea para proyecto\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts"]
-            }
-          }
-        },
-        {
-          "name": "Get Thoughts",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts?userId=user123&tagSource=Manual",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts"],
-              "query": [
-                { "key": "userId", "value": "user123" },
-                { "key": "tagSource", "value": "Manual" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Thought",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts","{{thoughtId}}"]
-            }
-          }
-        },
-        {
-          "name": "Update Thought",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"Idea refinada\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts","{{thoughtId}}"]
-            }
-          }
-        },
-        {
-          "name": "Delete Thought",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["thoughts","{{thoughtId}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Lists",
-      "item": [
-        {
-          "name": "Create List",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"Compras\",\n  \"items\": [\"Leche\",\"Pan\"],\n  \"tagIds\": []\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists"]
-            }
-          }
-        },
-        {
-          "name": "Get Lists",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists?userId=user123&name=Compras",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists"],
-              "query": [
-                { "key": "userId", "value": "user123" },
-                { "key": "name", "value": "Compras" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get List",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}"]
-            }
-          }
-        },
-        {
-          "name": "Update List",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Compras semanales\",\n  \"items\": [\"Huevos\",\"Queso\"],\n  \"tagIds\": []\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}"]
-            }
-          }
-        },
-        {
-          "name": "Delete List",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}"]
-            }
-          }
-        },
-        {
-          "name": "Add Item to List",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"item\": \"Manzanas\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}","items"]
-            }
-          }
-        },
-        {
-          "name": "Replace List Items",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"items\": [\"Pan\",\"Leche\"]\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}","items"]
-            }
-          }
-        },
-        {
-          "name": "Delete List Item",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items/{{itemId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["lists","{{listId}}","items","{{itemId}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Notes",
-      "item": [
-        {
-          "name": "Create Note",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"title\": \"Mi nota\",\n  \"content\": \"Contenido de la nota\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes"]
-            }
-          }
-        },
-        {
-          "name": "Get Notes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes?userId=user123&title=Mi nota",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes"],
-              "query": [
-                { "key": "userId", "value": "user123" },
-                { "key": "title", "value": "Mi nota" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Note",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes","{{noteId}}"]
-            }
-          }
-        },
-        {
-          "name": "Update Note",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Nota actualizada\",\n  \"content\": \"Contenido modificado\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes","{{noteId}}"]
-            }
-          }
-        },
-        {
-          "name": "Delete Note",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["notes","{{noteId}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Tags",
-      "item": [
-        {
-          "name": "Create Tag",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"urgente\",\n  \"color\": \"#ff0000\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags"]
-            }
-          }
-        },
-        {
-          "name": "Get Tags",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags?userId=user123",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags"],
-              "query": [
-                { "key": "userId", "value": "user123" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Tag",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags","{{tagId}}"]
-            }
-          }
-        },
-        {
-          "name": "Update Tag",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"alta prioridad\",\n  \"color\": \"#00ff00\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags","{{tagId}}"]
-            }
-          }
-        },
-        {
-          "name": "Delete Tag",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["tags","{{tagId}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Actions",
-      "item": [
-        {
-          "name": "Record Action",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"actionType\": \"CREATE_LIST\",\n  \"details\": \"Se creó lista Compras\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/actions",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["actions"]
-            }
-          }
-        },
-        {
-          "name": "Get Actions",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/actions?userId=user123",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["actions"],
-              "query": [
-                { "key": "userId", "value": "user123" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create List Through AI",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Necesito una lista de tareas: limpiar, lavar ropa\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/actions/create-list-through-ai",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["actions","create-list-through-ai"]
-            }
-          }
-        },
-        {
-          "name": "Perform Research",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Explica la teoría de la relatividad\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/actions/perform-research",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["actions","perform-research"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Users",
-      "item": [
-        {
-          "name": "Create User",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"first\": \"Ana\",\n  \"lastname\": \"García\",\n  \"email\": \"ana@ejemplo.com\"\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/users",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["users"]
-            }
-          }
-        },
-        {
-          "name": "Get User",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/users/{{userId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["users","{{userId}}"]
-            }
-          }
-        },
-        {
-          "name": "Update User",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"lastname\": \"Sánchez\",\n  \"roles\": [\"admin\"]\n}"
-            },
-            "url": {
-              "raw": "{{API_GATEWAY_URL}}/users/{{userId}}",
-              "host": ["{{API_GATEWAY_URL}}"],
-              "path": ["users","{{userId}}"]
-            }
-          }
-        }
-      ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "API_GATEWAY_URL",
-      "value": "https://your-api-id.execute-api.us-east-1.amazonaws.com/$default",
-      "type": "string"
-    }
-  ]
+	"info": {
+		"_postman_id": "92c2f530-ea4b-4aff-9f5d-d531e24b8070",
+		"name": "Saphire Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11561154"
+	},
+	"item": [
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "Create Text Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"conversationId\": \"conv123\",\n  \"sender\": \"user123\",\n  \"content\": \"Quieor estudiar japones, #hobbies #cosasPorHacer\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Audio Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"conversationId\": \"conv123\",\n  \"sender\": \"user123\",\n  \"s3Key\": \"audio123.mp3\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages/audio",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages",
+								"audio"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Audio Upload URL",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages/upload-url",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages",
+								"upload-url"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Identify Message Intent",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sender\": \"user123\",\n  \"content\": \"Necesito una lista de compras: leche, pan, huevos\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages/intent-identification",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages",
+								"intent-identification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages?conversationId=conv123&sender=user123&usedAI=true",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages"
+							],
+							"query": [
+								{
+									"key": "conversationId",
+									"value": "conv123"
+								},
+								{
+									"key": "sender",
+									"value": "user123"
+								},
+								{
+									"key": "usedAI",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Message",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages",
+								"{{messageId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Message",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sender\": \"user123\",\n  \"content\": \"Mensaje actualizado\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages",
+								"{{messageId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Message",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/messages/{{messageId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"messages",
+								"{{messageId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Thoughts",
+			"item": [
+				{
+					"name": "Create Thought",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Idea para proyecto\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/thoughts",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"thoughts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Thoughts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/thoughts?userId=user123&tagSource=Manual",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"thoughts"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								},
+								{
+									"key": "tagSource",
+									"value": "Manual"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Thought",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"thoughts",
+								"{{thoughtId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Thought",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Idea refinada\",\n    \"tagIds\": [\n    \"427e6c60-1911-4b3d-a317-f69e5666a46c\",\n    \"832dba23-df5a-4bb7-bcf8-68aaf2caf5a0\",\n    \"d7b94dfa-95e7-4eaa-a11c-8bc321886c6a\",\n    \"66c4b295-b0fc-43a0-a1b9-c03222a38c70\",\n    \"0b2b667a-8c63-459b-b0e3-c9b4da5c29f2\"\n]\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"thoughts",
+								"{{thoughtId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Thought",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/thoughts/{{thoughtId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"thoughts",
+								"{{thoughtId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lists",
+			"item": [
+				{
+					"name": "Create List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"Compras\",\n  \"items\": [\"Leche\",\"Pan\"],\n  \"tagIds\": []\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lists",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists?userId=user123&name=Compras",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								},
+								{
+									"key": "name",
+									"value": "Compras"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists",
+								"{{listId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update List",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Compras semanales\",\n  \"items\": [\"Huevos\",\"Queso\"],\n  \"tagIds\": []\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists",
+								"{{listId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete List",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists/{{listId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists",
+								"{{listId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Item to List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"item\": \"Manzanas\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists",
+								"{{listId}}",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Replace List Items",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\"Pan\",\"Leche\"]\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists",
+								"{{listId}}",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete List Item",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/lists/{{listId}}/items/{{itemId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"lists",
+								"{{listId}}",
+								"items",
+								"{{itemId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notes",
+			"item": [
+				{
+					"name": "Create Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"title\": \"Mi nota\",\n  \"content\": \"Contenido de la nota\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/notes",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"notes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/notes?userId=user123&title=Mi nota",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"notes"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								},
+								{
+									"key": "title",
+									"value": "Mi nota"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Note",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"notes",
+								"{{noteId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Note",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Nota actualizada\",\n  \"content\": \"Contenido modificado\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"notes",
+								"{{noteId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Note",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/notes/{{noteId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"notes",
+								"{{noteId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tags",
+			"item": [
+				{
+					"name": "Create Tag",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"name\": \"urgente\",\n  \"color\": \"#ff0000\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/tags",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tags",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/tags?userId=user123",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"tags"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tag",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"tags",
+								"{{tagId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tag",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"alta prioridad\",\n  \"color\": \"#00ff00\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"tags",
+								"{{tagId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tag",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/tags/{{tagId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"tags",
+								"{{tagId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Actions",
+			"item": [
+				{
+					"name": "Record Action",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"actionType\": \"CREATE_LIST\",\n  \"details\": \"Se creó lista Compras\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/actions",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"actions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Actions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/actions?userId=user123",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"actions"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "user123"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create List Through AI",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Necesito una lista de tareas: limpiar, lavar ropa\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/actions/create-list-through-ai",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"actions",
+								"create-list-through-ai"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Perform Research",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user123\",\n  \"content\": \"Explica la teoría de la relatividad\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/actions/perform-research",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"actions",
+								"perform-research"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first\": \"Ana\",\n  \"lastname\": \"García\",\n  \"email\": \"ana@ejemplo.com\"\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/users",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/users/{{userId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"lastname\": \"Sánchez\",\n  \"roles\": [\"admin\"]\n}"
+						},
+						"url": {
+							"raw": "{{API_GATEWAY_URL}}/users/{{userId}}",
+							"host": [
+								"{{API_GATEWAY_URL}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "API_GATEWAY_URL",
+			"value": "https://your-api-id.execute-api.us-east-1.amazonaws.com/$default",
+			"type": "string"
+		}
+	]
 }
