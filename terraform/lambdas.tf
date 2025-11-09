@@ -54,6 +54,23 @@ locals {
     "createListThroughAI",
     "performResearch"
   ]
+
+  # Lambdas que necesitan el TagService layer
+  tag_service_users = [
+    "createMessage",
+    "createMessageFromAudio",
+    "updateMessage",
+    "createThought",
+    "updateThought",
+    "createList",
+    "updateList",
+    "createNote",
+    "updateNote",
+    "getMessages",
+    "getThoughts",
+    "getLists",
+    "getNotes"
+  ]
 }
 
 resource "aws_lambda_function" "all" {
@@ -70,6 +87,9 @@ resource "aws_lambda_function" "all" {
   # Ajuste condicional de timeout y memoria
   timeout     = contains(local.heavy_functions, each.value) ? 15 : 3
   memory_size = contains(local.heavy_functions, each.value) ? 512 : 128
+
+  # Agregar Lambda Layer si la función lo necesita
+  layers = contains(local.tag_service_users, each.value) ? [aws_lambda_layer_version.tag_service.arn] : []
 
   environment {
     variables = {
@@ -95,7 +115,8 @@ resource "aws_lambda_function" "all" {
 
   depends_on = [
     aws_iam_role_policy.lambda_ddb_access,
-    aws_iam_role_policy.lambda_logs
+    aws_iam_role_policy.lambda_logs,
+    aws_lambda_layer_version.tag_service
   ]
 }
 

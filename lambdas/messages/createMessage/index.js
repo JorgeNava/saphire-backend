@@ -6,9 +6,11 @@
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { TagService } = require('/opt/nodejs/tagService');
 
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const lambda    = new AWS.Lambda({ region: process.env.AWS_REGION });
+const tagService = new TagService();
 
 const MSG_TABLE     = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const INTENT_LAMBDA = process.env.LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION;
@@ -16,13 +18,20 @@ const INTENT_LAMBDA = process.env.LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION;
 exports.handler = async (event) => {
   try {
     // 0) Parsear entrada
-    const { conversationId, sender, content } = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body || '{}');
+    const conversationId = body.conversationId || body.userId; // Aceptar userId como conversationId
+    const { sender, content, tags, tagNames: inputTagNames } = body;
+    
     if (!conversationId || !sender || !content) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'conversationId, sender y content son requeridos.' })
+        body: JSON.stringify({ error: 'conversationId (o userId), sender y content son requeridos.' })
       };
     }
+
+    // Resolver tags si se proporcionan (usar tags o tagNames del input)
+    const tagsToResolve = tags || inputTagNames;
+    const { tagIds, tagNames } = await tagService.parseAndResolveTags(tagsToResolve, sender);
 
     // 1) Guardar mensaje inicial (sin intent)
     const messageId = uuidv4();
@@ -34,6 +43,9 @@ exports.handler = async (event) => {
       sender,
       content,
       inputType: 'text',
+      tagIds,
+      tagNames,
+      tagSource: tags ? 'Manual' : null,
       createdAt: timestamp,
       updatedAt: timestamp,
       intent: null

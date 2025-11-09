@@ -179,6 +179,9 @@ resource "aws_dynamodb_table" "tags" {
     range_key       = "name"
     projection_type = "ALL"
   }
+
+  # Nota: usageCount se agregará automáticamente cuando se use
+  # DynamoDB es schema-less, no requiere definición previa
 }
 
 ################################################################################

@@ -2,37 +2,53 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Version actual del backend:*** 0.0.3
+***Versión actual del backend:*** 0.0.4
+
+**🎉 Novedades v0.0.4:**
+- Lambda Layer compartido para gestión de tags (TagService)
+- Mensajes de audio con soporte completo para tags
+- Filtrado de mensajes por nombres de tags
+- Mejoras en consistencia de API (userId/conversationId)
 
 ---
 
 ## ✨ Funcionalidades
 
-* **Mensajes de texto**: `POST /messages` → guarda y clasifica automáticamente (OpenAI GPT-4 Turbo).
+### 💬 Mensajes
+* **Mensajes de texto**: `POST /messages` → Acepta `userId` o `conversationId`, clasifica con IA
+* **URL de subida de audio**: `POST /messages/upload-url` → Genera URL firmada de S3
+* **Mensajes de audio**: `POST /messages/audio` → Transcribe con Whisper, acepta `userId` y `tagNames`
+* **Historial**: `GET /messages?userId={userId}` → Filtra por `tagNames` o `tagIds`
+* **Detalle**: `GET /messages/{conversationId}/{timestamp}`
+* **Actualizar**: `PUT /messages/{conversationId}/{timestamp}`
+* **Eliminar**: `DELETE /messages/{conversationId}/{timestamp}`
 
-* **URL de subida de audio**: `GET /messages/upload-url` → firma un URL S3.
+### 🏷️ Sistema de Tags
+* **CRUD completo**: `/tags` con colores y `usageCount`
+* **Resolución automática**: TagService crea tags si no existen
+* **Filtrado avanzado**: Por nombre o UUID en todos los recursos
+* **Clasificación IA**: Tags automáticos en mensajes de audio
 
-* **Mensajes de audio**: `POST /messages/audio` → transcribe y guarda la transcripción.
+### 💭 Pensamientos
+* **CRUD**: `/thoughts` con detección IA/manual de tags
+* **Creación automática**: Desde mensajes con intent "pensamiento"
 
-* **Historial de mensajes**: `GET /messages?conversationId={conversationId}` → devuelve todos los mensajes de una conversación.
+### 📋 Listas
+* **CRUD**: `/lists` con soporte completo de tags
+* **Gestión de items**: `POST /lists/{listId}/items`, `DELETE /lists/{listId}/items/{itemId}`
+* **Tags directos**: Acepta `tagIds`, `tagNames` y `tagSource` en actualizaciones
 
-* **Detalle de mensaje**: `GET /messages/{conversationId}/{timestamp}`.
+### 📝 Notas
+* **CRUD**: `/notes` con attachments en S3
+* **Tags**: Soporte completo con TagService
 
-* **Actualizar mensaje**: `PUT /messages/{conversationId}/{timestamp}`.
+### 👤 Usuarios
+* **Registro**: `POST /users`
+* **Perfil**: `GET/PUT /users/{userId}` con roles e IAM
 
-* **Eliminar mensaje**: `DELETE /messages/{conversationId}/{timestamp}`.
-
-* **Pensamientos**: CRUD en `/thoughts` con detección IA/manual de etiquetas.
-
-* **Listas**: CRUD en `/lists` + gestión de ítems (`POST /lists/{listId}/items`, `DELETE /lists/{listId}/items/{itemId}`).
-
-* **Notas**: CRUD en `/notes` + attachments.
-
-* **Etiquetas**: CRUD en `/tags` con asignación de color.
-
-* **Registro de acciones**: POST/GET en `/actions`.
-
-* **Usuarios**: POST `/users`, GET/PUT `/users/{userId}` con roles e IAM.
+### 📊 Registro de Acciones
+* **Log**: `POST /actions` para auditoría
+* **Consulta**: `GET /actions?userId={userId}`
 
 ---
 
@@ -41,10 +57,11 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 | Capa               | Tecnología                               |
 | ------------------ | ---------------------------------------- |
 | Compute            | AWS Lambda (Node.js 18.x)                |
+| Shared Code        | Lambda Layers (TagService)               |
 | API                | Amazon API Gateway v2 (HTTP API)         |
 | Base de datos      | Amazon DynamoDB                          |
 | Almacenamiento     | Amazon S3                                |
-| Transcripción      | Amazon Transcribe                        |
+| Transcripción      | OpenAI Whisper API                       |
 | IA / Clasificación | OpenAI GPT-4 Turbo                       |
 | CI/CD              | GitHub Actions                           |
 | Infraestructura    | Terraform (estado en S3 + DynamoDB Lock) |
@@ -55,54 +72,46 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 
 ```
 saphire-backend/
-├── .env                 # Variables locales
-├── terraform/           # HCL: DynamoDB, IAM, Lambda, API Gateway
-│   ├── backend.tf
-│   ├── variables.tf
-│   ├── dynamodb.tf
-│   ├── iam.tf
-│   ├── lambda.tf
-│   └── api\_gateway.tf
-├── lambdas/             # Carpetas de funciones Lambda
-│   ├── createMessage/
-│   │   ├── index.js
-│   │   └── package.json
-│   ├── agenerateMessageAudioUploadUrl/
-│   ├── createMessageFromAudio/
-│   ├── getMessage/
-│   ├── getMessages/
-│   ├── updateMessage/
-│   ├── deleteMessage/
-│   ├── createThought/
-│   ├── getThoughts/
-│   ├── getThought/
-│   ├── updateThought/
-│   ├── deleteThought/
-│   ├── createList/
-│   ├── getLists/
-│   ├── getList/
-│   ├── updateList/
-│   ├── deleteList/
-│   ├── addItemToList/
-│   ├── deleteListItem/
-│   ├── createNote/
-│   ├── getNotes/
-│   ├── getNote/
-│   ├── updateNote/
-│   ├── deleteNote/
-│   ├── createTag/
-│   ├── getTags/
-│   ├── getTag/
-│   ├── updateTag/
-│   ├── deleteTag/
-│   ├── recordAction/
-│   ├── getActions/
-│   ├── createUser/
-│   ├── getUser/
-│   ├── updateUser/
-│   └── messageIntentIdentification/
+├── .env                     # Variables locales (ignorado)
+├── .gitignore               # Archivos ignorados
+├── package.json             # Scripts de build
+├── CHANGELOG.md             # Historial de cambios
+├── README.md                # Este archivo
+├── terraform/               # Infraestructura como código
+│   ├── backend.tf           # Backend remoto S3
+│   ├── variables.tf         # Variables de Terraform
+│   ├── dynamodb.tf          # Tablas DynamoDB
+│   ├── iam.tf               # Roles y políticas
+│   ├── lambdas.tf           # Funciones Lambda
+│   ├── lambda_layers.tf     # Lambda Layers (TagService)
+│   └── api_gateway.tf       # API Gateway HTTP
+├── lambdas/                 # Funciones Lambda
+│   ├── layers/              # Lambda Layers compartidos
+│   │   └── tagService/      # Layer para gestión de tags
+│   │       ├── build.sh
+│   │       └── nodejs/
+│   │           ├── tagService.js
+│   │           └── package.json
+│   ├── messages/            # Endpoints de mensajes
+│   │   ├── createMessage/
+│   │   ├── createMessageFromAudio/
+│   │   ├── getMessages/
+│   │   ├── getMessage/
+│   │   ├── updateMessage/
+│   │   ├── deleteMessage/
+│   │   └── generateMessageAudioUploadUrl/
+│   ├── thoughts/            # Endpoints de pensamientos
+│   ├── lists/               # Endpoints de listas
+│   ├── notes/               # Endpoints de notas
+│   ├── tags/                # Endpoints de tags
+│   ├── actions/             # Endpoints de acciones
+│   ├── users/               # Endpoints de usuarios
+│   └── dist/                # ZIPs empaquetados (ignorado)
+├── scripts/                 # Scripts de utilidad
+│   ├── build-all.sh         # Build completo (Layer + Lambdas)
+│   └── package-all-lambdas.sh  # Empaquetar todas las Lambdas
 └── .github/workflows/
-└── deploy.yml       # CI/CD empaquetado, Terraform, deploy Lambdas
+    └── deploy.yml           # CI/CD con GitHub Actions
 ```
 
 ---
@@ -255,12 +264,64 @@ De este modo, la sección de **“En GitHub Secrets”** de tu README servirá c
 | Tabla          | PK             | SK        | Atributos principales                                                                                               |
 | -------------- | -------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Users**      | userId         | —         | first, lastname, email, passwordHash/cognitoSub, roles, iamRoleArn, createdAt, updatedAt, createdBy, lastModifiedBy |
-| **Messages**   | conversationId | timestamp | messageId, sender, content, inputType, createdAt, updatedAt, tagIds, usedAI, createdBy, lastModifiedBy              |
-| **Thoughts**   | thoughtId      | —         | userId, content, tagIds, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy                                 |
-| **Lists**      | listId         | —         | userId, name, items\[], tagIds, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy                          |
-| **Notes**      | noteId         | —         | userId, title, content, attachmentKeys\[], tagIds, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy       |
-| **Tags**       | tagId          | —         | userId, name, color, createdAt, updatedAt, createdBy, lastModifiedBy                                                |
+| **Messages**   | conversationId | timestamp | messageId, sender, content, originalContent, inputType, s3Key, transcription, tagIds, **tagNames**, **tagSource**, usedAI, createdAt, updatedAt, createdBy, lastModifiedBy |
+| **Thoughts**   | thoughtId      | —         | userId, content, tagIds, **tagNames**, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy                   |
+| **Lists**      | listId         | —         | userId, name, items\[], tagIds, **tagNames**, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy            |
+| **Notes**      | noteId         | —         | userId, title, content, attachmentKeys\[], tagIds, **tagNames**, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy |
+| **Tags**       | tagId          | —         | userId, name, color, **usageCount**, createdAt, updatedAt, createdBy, lastModifiedBy                                |
 | **ActionsLog** | actionId       | —         | userId, messageId?, actionType, status, details, timestamp, createdAt, updatedAt, createdBy, lastModifiedBy         |
+
+**Campos nuevos en v0.0.4:**
+- `tagNames`: Array de nombres de tags (para UI)
+- `tagSource`: "Manual" o "AI" (origen de los tags)
+- `usageCount`: Contador de uso de cada tag
+- `originalContent`: Contenido original antes de modificaciones
+- `transcription`: Texto transcrito de audio
+
+---
+
+## 🚀 Desarrollo
+
+### Scripts Disponibles
+
+```bash
+# Build completo (Layer + Lambdas modificadas)
+npm run build:all
+
+# Empaquetar todas las Lambdas
+npm run build:lambdas
+
+# Build solo del Layer TagService
+npm run build:layer
+```
+
+### Lambda Layer: TagService
+
+El TagService es un Layer compartido que proporciona funciones comunes para gestión de tags:
+
+```javascript
+const { TagService } = require('/opt/nodejs/tagService');
+const tagService = new TagService();
+
+// Resolver tags (por nombre o UUID)
+const { tagIds, tagNames } = await tagService.parseAndResolveTags(
+  ['Trabajo', 'Importante'],  // Tags de entrada
+  'user123'                    // userId
+);
+
+// Crear tag si no existe
+const tag = await tagService.createTag('NuevoTag', 'user123');
+
+// Incrementar contador de uso
+await tagService.incrementUsageCount('tagId123');
+```
+
+**Lambdas que usan TagService:**
+- `createMessage`, `updateMessage`
+- `createMessageFromAudio`
+- `createThought`, `updateThought`
+- `createList`, `updateList`
+- `createNote`, `updateNote`
 
 ---
 

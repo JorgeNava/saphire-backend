@@ -10,6 +10,7 @@
 
 # Planes serializados
 *.tfplan
+tfplan
 
 # Archivos de override de Terraform
 override.tf
@@ -20,5 +21,47 @@ override.tf.json
 # Logs de crash de Terraform
 crash.log
 
+# Lock file de Terraform (puede incluirse o ignorarse según preferencia del equipo)
+.terraform.lock.hcl
+
+# Variables de Terraform con datos sensibles
+terraform.tfvars
+*.auto.tfvars
+
+# Environment files
 .env
-ignore
+.env.*
+!.env.example
+
+# Directorios de dependencias Node.js
+node_modules/
+package-lock.json
+
+# Directorios de build
+dist/
+build/
+
+# Scripts temporales y de prueba
+scripts/test-*.js
+scripts/fix-*.js
+scripts/diagnose-*.js
+scripts/migrate-*.js
+
+# Archivos de log
+*.log
+change.log
+
+# Carpeta ignore personalizada
+ignore/
+
+# Layers de Lambda (generados, no código fuente)
+lambdas/layers/*/nodejs/node_modules/
+lambdas/layers/*/nodejs/package-lock.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
