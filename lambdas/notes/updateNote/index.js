@@ -12,13 +12,16 @@
  */
 
 const AWS = require('aws-sdk');
-const docClient  = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { TagService } = require('/opt/nodejs/tagService');
+
+const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const tagService = new TagService();
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
 
 exports.handler = async (event) => {
   try {
     const { noteId } = event.pathParameters;
-    const { title, content, attachmentKeys = [], tagIds = [] } = JSON.parse(event.body);
+    const { title, content, attachmentKeys = [], tags, userId } = JSON.parse(event.body);
 
     if (!noteId || !title || !content) {
       return {
@@ -27,25 +30,23 @@ exports.handler = async (event) => {
       };
     }
 
+    // Resolver tags usando TagService
+    const { tagIds, tagNames } = await tagService.parseAndResolveTags(tags, userId || 'Manual');
+
     const updatedAt = new Date().toISOString();
     const params = {
       TableName: TABLE_NAME,
       Key: { noteId },
-      UpdateExpression: [
-        'SET title = :t',
-        ', content = :c',
-        ', attachmentKeys = :a',
-        ', tagIds = :g',
-        ', updatedAt = :u',
-        ', lastModifiedBy = :m'
-      ].join(''),
+      UpdateExpression: 'SET title = :t, content = :c, attachmentKeys = :a, tagIds = :g, tagNames = :tn, tagSource = :ts, updatedAt = :u, lastModifiedBy = :m',
       ExpressionAttributeValues: {
         ':t': title,
         ':c': content,
         ':a': attachmentKeys,
         ':g': tagIds,
+        ':tn': tagNames,
+        ':ts': tags ? 'Manual' : null,
         ':u': updatedAt,
-        ':m': 'Manual'
+        ':m': userId || 'Manual'
       },
       ReturnValues: 'ALL_NEW'
     };

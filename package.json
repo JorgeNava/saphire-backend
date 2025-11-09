@@ -1,0 +1,19 @@
+{
+  "name": "saphire-backend",
+  "version": "0.0.4",
+  "description": "Zafira Backend - AI Notes App",
+  "scripts": {
+    "build:layer": "cd lambdas/layers/tagService && ./build.sh",
+    "build:lambdas": "./scripts/package-all-lambdas.sh",
+    "build:all": "./scripts/build-all.sh"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

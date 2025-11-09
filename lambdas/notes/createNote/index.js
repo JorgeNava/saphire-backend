@@ -14,13 +14,15 @@
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { TagService } = require('/opt/nodejs/tagService');
 
-const docClient  = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const tagService = new TagService();
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
 
 exports.handler = async (event) => {
   try {
-    const { userId, title, content, attachmentKeys = [], tagIds = [] } = JSON.parse(event.body);
+    const { userId, title, content, attachmentKeys = [], tags } = JSON.parse(event.body);
     if (!userId || !title || !content) {
       return {
         statusCode: 400,
@@ -28,8 +30,11 @@ exports.handler = async (event) => {
       };
     }
 
-    const noteId     = uuidv4();
-    const timestamp  = new Date().toISOString();
+    // Resolver tags usando TagService
+    const { tagIds, tagNames } = await tagService.parseAndResolveTags(tags, userId);
+
+    const noteId = uuidv4();
+    const timestamp = new Date().toISOString();
     const item = {
       noteId,
       userId,
@@ -37,11 +42,12 @@ exports.handler = async (event) => {
       content,
       attachmentKeys,
       tagIds,
-      tagSource:       'Manual',
-      createdAt:       timestamp,
-      updatedAt:       timestamp,
-      createdBy:       'Manual',
-      lastModifiedBy:  'Manual'
+      tagNames,
+      tagSource: tags ? 'Manual' : null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      createdBy: userId,
+      lastModifiedBy: userId
     };
 
     await docClient.put({

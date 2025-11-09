@@ -10,17 +10,18 @@
  */
 
 const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const docClient = new AWS.DynamoDB.DocumentClient();
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 
 exports.handler = async (event) => {
   try {
     const qs = event.queryStringParameters || {};
-    const { conversationId } = qs;
+    // Aceptar tanto conversationId como userId (para backward compatibility)
+    const conversationId = qs.conversationId || qs.userId;
     if (!conversationId) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'El query param conversationId es requerido.' })
+        body: JSON.stringify({ error: 'El query param conversationId o userId es requerido.' })
       };
     }
 
@@ -79,6 +80,19 @@ exports.handler = async (event) => {
           eav[key] = tag;
         });
         filters.push(`(${tagFilters.join(' OR ')})`);
+      }
+    }
+    // Búsqueda por nombre de tag (tagNames)
+    if (qs.tagNames) {
+      const tagNames = qs.tagNames.split(',').map(t => t.trim()).filter(Boolean);
+      if (tagNames.length) {
+        const nameFilters = [];
+        tagNames.forEach((name, idx) => {
+          const key = `:tagName${idx}`;
+          nameFilters.push(`contains(tagNames, ${key})`);
+          eav[key] = name;
+        });
+        filters.push(`(${nameFilters.join(' OR ')})`);
       }
     }
 

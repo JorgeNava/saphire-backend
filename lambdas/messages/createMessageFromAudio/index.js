@@ -13,11 +13,14 @@
 
 const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const FormData     = require('form-data');
+const axios        = require('axios');
 const AWS          = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { TagService } = require('/opt/nodejs/tagService');
 
 const s3       = new S3Client({ region: process.env.AWS_REGION });
 const docClient= new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const tagService = new TagService();
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const TAGS_TABLE= process.env.AWS_DYNAMODB_TABLE_TAGS;
 const OPENAI_API_TRANSCRIPTION_ENDPOINT = `${process.env.OPENAI_API_BASE_URL}/v1/audio/transcriptions`;
@@ -35,14 +38,21 @@ async function transcribe(buffer, filename) {
   const form = new FormData();
   form.append('file', buffer, filename);
   form.append('model','whisper-1');
-  const res = await fetch(OPENAI_API_TRANSCRIPTION_ENDPOINT, {
-    method:'POST',
-    headers:{ Authorization:`Bearer ${OPENAI_KEY}` },
-    body: form
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message);
-  return data.text.trim();
+  
+  const response = await axios.post(
+    OPENAI_API_TRANSCRIPTION_ENDPOINT,
+    form,
+    {
+      headers: {
+        ...form.getHeaders(),
+        'Authorization': `Bearer ${OPENAI_KEY}`
+      },
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity
+    }
+  );
+  
+  return response.data.text.trim();
 }
 
 async function classifyTags(text, sender, existingNames) {
@@ -75,10 +85,13 @@ Solo responde con nombres separados por comas.`
 
 exports.handler = async (event) => {
   try {
-    const { conversationId, sender, s3Key, tagIds } = JSON.parse(event.body);
+    const body = JSON.parse(event.body);
+    const conversationId = body.conversationId || body.userId; // Aceptar userId como conversationId
+    const { sender, s3Key, tagIds, tagNames } = body;
+    
     if (!conversationId || !sender || !s3Key) {
       return { statusCode:400,
-        body: JSON.stringify({ error:'conversationId, sender y s3Key son requeridos.' }) };
+        body: JSON.stringify({ error:'conversationId (o userId), sender y s3Key son requeridos.' }) };
     }
 
     // 1) bajar audio
@@ -90,23 +103,40 @@ exports.handler = async (event) => {
     // 2) transcribir
     const text = await transcribe(buffer, s3Key);
 
-    // 3) cargar etiquetas existentes
-    const tagsData = await docClient.scan({
-      TableName: TAGS_TABLE,
-      ProjectionExpression:'tagId,name'
-    }).promise();
-    const existing = tagsData.Items || [];
-    const names    = existing.map(t=>t.name);
-
-    // 4) decidir tagIds finales
-    let finalTagIds = tagIds;
+    // 3) Resolver tags si se proporcionan (usar tagIds, tagNames, o tags del input)
+    const tagsToResolve = tagIds || tagNames || body.tags;
+    let finalTagIds = [];
+    let finalTagNames = [];
+    let tagSource = null;
     let usedAI = false;
     let createdBy = sender;
-    if (!Array.isArray(tagIds) || tagIds.length===0) {
+    
+    if (tagsToResolve && (Array.isArray(tagsToResolve) && tagsToResolve.length > 0)) {
+      // Usuario proporcionó tags manualmente
+      const resolved = await tagService.parseAndResolveTags(tagsToResolve, sender);
+      finalTagIds = resolved.tagIds;
+      finalTagNames = resolved.tagNames;
+      tagSource = 'Manual';
+    } else {
+      // No hay tags manuales, usar IA para clasificar
+      const tagsData = await docClient.scan({
+        TableName: TAGS_TABLE,
+        ProjectionExpression:'tagId,#name',
+        ExpressionAttributeNames: {
+          '#name': 'name'
+        }
+      }).promise();
+      const existing = tagsData.Items || [];
+      const names = existing.map(t=>t.name);
+      
       const chosen = await classifyTags(text, sender, names);
       finalTagIds = existing
         .filter(t => chosen.includes(t.name.toLowerCase()))
         .map(t => t.tagId);
+      finalTagNames = existing
+        .filter(t => chosen.includes(t.name.toLowerCase()))
+        .map(t => t.name);
+      tagSource = 'AI';
       usedAI = true;
       createdBy = 'AI';
     }
@@ -120,10 +150,15 @@ exports.handler = async (event) => {
       messageId,
       sender,
       content: text,
+      originalContent: text,
       inputType:'audio',
+      s3Key,
+      transcription: text,
       createdAt: timestamp,
       updatedAt: timestamp,
       tagIds: finalTagIds,
+      tagNames: finalTagNames,
+      tagSource,
       usedAI,
       createdBy,
       lastModifiedBy: createdBy

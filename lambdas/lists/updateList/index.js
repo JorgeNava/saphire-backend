@@ -13,27 +13,54 @@
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { TagService } = require('/opt/nodejs/tagService');
 
-const docClient  = new AWS.DynamoDB.DocumentClient();
+const docClient = new AWS.DynamoDB.DocumentClient();
+const tagService = new TagService();
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {
   try {
     const { listId } = event.pathParameters;
+    const body = JSON.parse(event.body);
     const {
       name,
       items = [],
-      tagIds = [],
-      tagSource
-    } = JSON.parse(event.body);
+      tags,
+      tagIds: inputTagIds,
+      tagNames: inputTagNames,
+      tagSource: inputTagSource,
+      userId
+    } = body;
 
-    if (!listId || !name || !tagSource) {
+    if (!listId || !name) {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          error: "Los campos listId, name y tagSource son requeridos."
+          error: "Los campos listId y name son requeridos."
         })
       };
+    }
+
+    // Resolver tags: si vienen tagIds/tagNames directamente, usarlos; sino usar TagService
+    let tagIds, tagNames, tagSource;
+    
+    if (inputTagIds && inputTagNames) {
+      // Usuario envió tagIds y tagNames directamente
+      tagIds = inputTagIds;
+      tagNames = inputTagNames;
+      tagSource = inputTagSource || 'Manual';
+    } else if (tags) {
+      // Usuario envió tags para resolver con TagService
+      const resolved = await tagService.parseAndResolveTags(tags, userId || 'Manual');
+      tagIds = resolved.tagIds;
+      tagNames = resolved.tagNames;
+      tagSource = 'Manual';
+    } else {
+      // Sin tags
+      tagIds = [];
+      tagNames = [];
+      tagSource = null;
     }
 
     const updatedAt = new Date().toISOString();
@@ -47,20 +74,13 @@ exports.handler = async (event) => {
 
     const params = {
       TableName: TABLE_NAME,
-      Key:       { listId },
+      Key: { listId },
 
       // Usamos alias porque "items" es palabra reservada en DynamoDB UpdateExpression
-      UpdateExpression: [
-        'SET #n      = :name',
-        ', #it      = :items',
-        ', tagIds   = :tagIds',
-        ', tagSource= :ts',
-        ', updatedAt= :u',
-        ', lastModifiedBy = :ts'
-      ].join(' '),
+      UpdateExpression: 'SET #n = :name, #it = :items, tagIds = :tagIds, tagNames = :tagNames, tagSource = :ts, updatedAt = :u, lastModifiedBy = :lm',
 
       ExpressionAttributeNames: {
-        '#n' : 'name',
+        '#n': 'name',
         '#it': 'items'
       },
 
@@ -68,8 +88,10 @@ exports.handler = async (event) => {
         ':name': name,
         ':items': structuredItems,
         ':tagIds': tagIds,
+        ':tagNames': tagNames,
         ':ts': tagSource,
-        ':u': updatedAt
+        ':u': updatedAt,
+        ':lm': userId || 'Manual'
       },
 
       ReturnValues: 'ALL_NEW'

@@ -14,8 +14,10 @@
 
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { TagService } = require('/opt/nodejs/tagService');
 
-const docClient  = new AWS.DynamoDB.DocumentClient();
+const docClient = new AWS.DynamoDB.DocumentClient();
+const tagService = new TagService();
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {
@@ -24,25 +26,27 @@ exports.handler = async (event) => {
       userId,
       name,
       items = [],
-      tagIds = [],
-      tagSource
+      tags
     } = JSON.parse(event.body);
 
-    if (!userId || !name || !tagSource) {
+    if (!userId || !name) {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          error: "Los campos userId, name y tagSource son requeridos."
+          error: "Los campos userId y name son requeridos."
         })
       };
     }
 
-    const listId    = uuidv4();
+    // Resolver tags usando TagService
+    const { tagIds, tagNames } = await tagService.parseAndResolveTags(tags, userId);
+
+    const listId = uuidv4();
     const timestamp = new Date().toISOString();
 
     // Mapeamos cada string a un objeto con itemId + content
     const structuredItems = items.map(content => ({
-      itemId:  uuidv4(),
+      itemId: uuidv4(),
       content
     }));
 
@@ -50,13 +54,14 @@ exports.handler = async (event) => {
       listId,
       userId,
       name,
-      items:           structuredItems,
+      items: structuredItems,
       tagIds,
-      tagSource,
-      createdAt:       timestamp,
-      createdBy:       tagSource,
-      updatedAt:       timestamp,
-      lastModifiedBy:  tagSource
+      tagNames,
+      tagSource: tags ? 'Manual' : null,
+      createdAt: timestamp,
+      createdBy: userId,
+      updatedAt: timestamp,
+      lastModifiedBy: userId
     };
 
     await docClient.put({
