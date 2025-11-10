@@ -30,6 +30,8 @@ locals {
     "getNote",
     "updateNote",
     "deleteNote",
+    "searchNotes",
+    "restoreNote",
     "createTag",
     "getTags",
     "getTag",
@@ -103,6 +105,7 @@ resource "aws_lambda_function" "all" {
       AWS_DYNAMODB_TABLE_ACTIONS_LOG        = var.aws_dynamodb_table_actions_log
       AWS_S3_MESSAGE_ATTACHMENTS_BUCKET     = var.aws_s3_message_attachments_bucket
       AWS_S3_NOTES_ATTACHMENTS_BUCKET       = var.aws_s3_notes_attachments_bucket
+      AWS_S3_BUCKET_ATTACHMENTS             = var.aws_s3_notes_attachments_bucket
       OPENAI_API_BASE_URL                   = var.openai_api_base_url
       OPENAI_API_KEY_AWS_USE                = var.openai_api_key_aws_use
       LAMBDA_NAME_CREATE_THOUGHT            = var.lambda_name_create_thought
