@@ -42,7 +42,7 @@ exports.handler = async (event) => {
     // 2. Obtener pensamiento
     const result = await docClient.get({
       TableName: THOUGHTS_TABLE,
-      Key: { thoughtId, userId }
+      Key: { thoughtId }
     }).promise();
 
     const thought = result.Item;

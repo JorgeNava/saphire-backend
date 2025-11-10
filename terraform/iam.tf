@@ -60,7 +60,8 @@ resource "aws_iam_role_policy" "lambda_ddb_access" {
           "dynamodb:UpdateItem",
           "dynamodb:DeleteItem",
           "dynamodb:Query",
-          "dynamodb:Scan"
+          "dynamodb:Scan",
+          "dynamodb:BatchGetItem"
         ]
         Resource = [
           # Todas las tablas con tu prefijo

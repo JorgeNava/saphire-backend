@@ -63,7 +63,7 @@ exports.handler = async (event) => {
     }
 
     // 2. Obtener pensamientos usando batchGet
-    const keys = thoughtIds.map(id => ({ thoughtId: id, userId }));
+    const keys = thoughtIds.map(id => ({ thoughtId: id }));
     const batchResult = await docClient.batchGet({
       RequestItems: {
         [THOUGHTS_TABLE]: {
