@@ -2,13 +2,13 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Versión actual del backend:*** 0.0.4
+***Versión actual del backend:*** 0.0.5
 
-**🎉 Novedades v0.0.4:**
-- Lambda Layer compartido para gestión de tags (TagService)
-- Mensajes de audio con soporte completo para tags
-- Filtrado de mensajes por nombres de tags
-- Mejoras en consistencia de API (userId/conversationId)
+**🎉 Novedades v0.0.5:**
+- Conversión de pensamientos a listas y notas
+- Creación automática de listas desde etiquetas
+- Referencias bidireccionales entre recursos
+- 3 nuevos endpoints de conversión
 
 ---
 
@@ -32,11 +32,14 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 ### 💭 Pensamientos
 * **CRUD**: `/thoughts` con detección IA/manual de tags
 * **Creación automática**: Desde mensajes con intent "pensamiento"
+* **Conversión a lista**: `POST /lists/from-thoughts` - Convierte múltiples pensamientos en lista
+* **Conversión a nota**: `POST /notes/from-thought` - Convierte pensamiento individual en nota
 
 ### 📋 Listas
 * **CRUD**: `/lists` con soporte completo de tags
 * **Gestión de items**: `POST /lists/{listId}/items`, `DELETE /lists/{listId}/items/{itemId}`
 * **Tags directos**: Acepta `tagIds`, `tagNames` y `tagSource` en actualizaciones
+* **Creación desde tags**: `POST /lists/from-tags` - Crea lista automáticamente desde 1-5 etiquetas
 
 ### 📝 Notas
 * **CRUD**: `/notes` con attachments en S3
@@ -236,6 +239,8 @@ De este modo, la sección de **“En GitHub Secrets”** de tu README servirá c
 | DELETE | `/lists/{listId}`                           | deleteList                     |
 | POST   | `/lists/{listId}/items`                     | addItemToList                  |
 | DELETE | `/lists/{listId}/items/{itemId}`            | deleteListItem                 |
+| POST   | `/lists/from-thoughts`                      | createListFromThoughts         |
+| POST   | `/lists/from-tags`                          | createListFromTags             |
 | POST   | `/thoughts`                                 | createThought                  |
 | GET    | `/thoughts?userId={userId}`                 | getThoughts                    |
 | GET    | `/thoughts/{thoughtId}`                     | getThought                     |
@@ -246,6 +251,7 @@ De este modo, la sección de **“En GitHub Secrets”** de tu README servirá c
 | GET    | `/notes/{noteId}`                           | getNote                        |
 | PUT    | `/notes/{noteId}`                           | updateNote                     |
 | DELETE | `/notes/{noteId}`                           | deleteNote                     |
+| POST   | `/notes/from-thought`                       | createNoteFromThought          |
 | POST   | `/tags`                                     | createTag                      |
 | GET    | `/tags?userId={userId}`                     | getTags                        |
 | GET    | `/tags/{tagId}`                             | getTag                         |
@@ -266,10 +272,20 @@ De este modo, la sección de **“En GitHub Secrets”** de tu README servirá c
 | **Users**      | userId         | —         | first, lastname, email, passwordHash/cognitoSub, roles, iamRoleArn, createdAt, updatedAt, createdBy, lastModifiedBy |
 | **Messages**   | conversationId | timestamp | messageId, sender, content, originalContent, inputType, s3Key, transcription, tagIds, **tagNames**, **tagSource**, usedAI, createdAt, updatedAt, createdBy, lastModifiedBy |
 | **Thoughts**   | thoughtId      | —         | userId, content, tagIds, **tagNames**, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy                   |
-| **Lists**      | listId         | —         | userId, name, items\[], tagIds, **tagNames**, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy            |
-| **Notes**      | noteId         | —         | userId, title, content, attachmentKeys\[], tagIds, **tagNames**, tagSource, createdAt, updatedAt, createdBy, lastModifiedBy |
+| **Lists**      | listId         | —         | userId, name, items\[], tagIds, **tagNames**, tagSource, **sourceType**, **createdFromThoughts**, **createdFromTags**, **searchedTags**, **thoughtsFound**, createdAt, updatedAt, createdBy, lastModifiedBy            |
+| **Notes**      | noteId         | —         | userId, title, content, attachmentKeys\[], tagIds, **tagNames**, tagSource, **sourceType**, **sourceThoughtId**, **sourceThoughtCreatedAt**, **createdFromThought**, createdAt, updatedAt, createdBy, lastModifiedBy |
 | **Tags**       | tagId          | —         | userId, name, color, **usageCount**, createdAt, updatedAt, createdBy, lastModifiedBy                                |
 | **ActionsLog** | actionId       | —         | userId, messageId?, actionType, status, details, timestamp, createdAt, updatedAt, createdBy, lastModifiedBy         |
+
+**Campos nuevos en v0.0.5:**
+- `sourceType`: Tipo de origen ("thoughts" | "tags" | "thought" | "manual")
+- `createdFromThoughts`: Boolean, indica si lista fue creada desde pensamientos
+- `createdFromTags`: Boolean, indica si lista fue creada desde etiquetas
+- `searchedTags`: Array de tags usados para buscar pensamientos
+- `thoughtsFound`: Número de pensamientos encontrados al crear desde tags
+- `sourceThoughtId`: UUID del pensamiento origen (en notas y list items)
+- `sourceThoughtCreatedAt`: Timestamp del pensamiento origen
+- `createdFromThought`: Boolean, indica si nota fue creada desde pensamiento
 
 **Campos nuevos en v0.0.4:**
 - `tagNames`: Array de nombres de tags (para UI)
@@ -321,7 +337,9 @@ await tagService.incrementUsageCount('tagId123');
 - `createMessageFromAudio`
 - `createThought`, `updateThought`
 - `createList`, `updateList`
+- `createListFromThoughts`, `createListFromTags`
 - `createNote`, `updateNote`
+- `createNoteFromThought`
 
 ---
 

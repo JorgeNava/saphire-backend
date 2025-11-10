@@ -43,6 +43,8 @@ locals {
     deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{itemId}" }
     deleteList        = { method = "DELETE" , path = "/lists/{listId}"       }
     createListFromMessages = { method = "POST", path = "/lists/from-messages" }
+    createListFromThoughts = { method = "POST", path = "/lists/from-thoughts" }
+    createListFromTags = { method = "POST", path = "/lists/from-tags" }
     createThought     = { method = "POST"   , path = "/thoughts"             }
     getThoughts       = { method = "GET"    , path = "/thoughts"             }
     getThought        = { method = "GET"    , path = "/thoughts/{thoughtId}" }
@@ -56,6 +58,7 @@ locals {
     searchNotes       = { method = "GET"    , path = "/notes/search"         }
     restoreNote       = { method = "POST"   , path = "/notes/{noteId}/restore" }
     createNoteFromMessage = { method = "POST", path = "/notes/from-message" }
+    createNoteFromThought = { method = "POST", path = "/notes/from-thought" }
     createTag         = { method = "POST"   , path = "/tags"                 }
     getTags           = { method = "GET"    , path = "/tags"                 }
     getTag            = { method = "GET"    , path = "/tags/{tagId}"         }

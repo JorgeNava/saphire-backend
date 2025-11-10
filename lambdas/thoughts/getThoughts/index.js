@@ -2,16 +2,19 @@
  * thoughts — getThoughts
  * GET /thoughts
  * Permite filtrar por userId (requerido) y opcionales:
- * tagIds (al menos uno), tagSource, createdAt (>=), updatedAt (>=),
- * createdBy, lastModifiedBy.
+ * tagIds (al menos uno), tagNames (al menos uno), tagSource, 
+ * createdAt (>=), updatedAt (>=), createdBy, lastModifiedBy.
+ * 
+ * Soporta paginación con limit y lastKey.
  *
  * Nuevos parámetros de paginación:
  * - limit: resultados por página (default: 50, max: 100)
  * - lastKey: token de paginación (URL encoded)
  * - sortOrder: asc | desc (default: desc - más recientes primero)
  *
- * Ejemplo:
+ * Ejemplos:
  * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/thoughts?userId=user123&limit=20&sortOrder=desc"
+ * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/thoughts?userId=user123&tagNames=trabajo,urgente&limit=50"
  */
 
 const AWS = require('aws-sdk');
@@ -27,6 +30,7 @@ exports.handler = async (event) => {
     if (!userId) {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'El query param userId es requerido.' })
       };
     }
@@ -45,14 +49,16 @@ exports.handler = async (event) => {
       ScanIndexForward:       sortOrder === 'asc',
       Limit:                  pageLimit
     };
-
+    
     // Paginación
     if (lastKey) {
       try {
         params.ExclusiveStartKey = JSON.parse(decodeURIComponent(lastKey));
       } catch (err) {
+        console.error('Error parsing lastKey:', err);
         return {
           statusCode: 400,
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ error: 'lastKey inválido.' })
         };
       }
@@ -82,17 +88,32 @@ exports.handler = async (event) => {
       filters.push('lastModifiedBy = :lastModifiedBy');
       eav[':lastModifiedBy'] = qs.lastModifiedBy;
     }
+    // Filtro por tagIds (UUIDs)
     if (qs.tagIds) {
-      // tagIds como csv: "tag1,tag2"
       const tags = qs.tagIds.split(',').map(t => t.trim()).filter(Boolean);
       if (tags.length) {
         const tagFilters = [];
         tags.forEach((tag, idx) => {
-          const key = `:tag${idx}`;
+          const key = `:tagId${idx}`;
           tagFilters.push(`contains(tagIds, ${key})`);
           eav[key] = tag;
         });
         filters.push(`(${tagFilters.join(' OR ')})`);
+      }
+    }
+    
+    // NUEVO: Filtro por tagNames (nombres de tags)
+    if (qs.tagNames) {
+      const tagNamesList = qs.tagNames.split(',').map(t => t.trim()).filter(Boolean);
+      if (tagNamesList.length) {
+        const tagNameFilters = [];
+        tagNamesList.forEach((tagName, idx) => {
+          const key = `:tagName${idx}`;
+          // Buscar en tagNames (case-insensitive usando LOWER)
+          tagNameFilters.push(`contains(tagNames, ${key})`);
+          eav[key] = tagName;
+        });
+        filters.push(`(${tagNameFilters.join(' OR ')})`);
       }
     }
 
@@ -103,8 +124,10 @@ exports.handler = async (event) => {
     // Ejecutar query
     const result = await docClient.query(params).promise();
     
+    // Preparar respuesta con paginación
     return {
       statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: result.Items || [],
         count: result.Count,
