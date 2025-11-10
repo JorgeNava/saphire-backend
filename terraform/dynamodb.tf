@@ -135,15 +135,28 @@ resource "aws_dynamodb_table" "notes" {
     name = "title"
     type = "S"
   }
+  attribute {
+    name = "createdAt"
+    type = "S"
+  }
 
   tags = {
     Project = "Zafira"
   }
 
+  # GSI para ordenar por título
   global_secondary_index {
     name            = "GSI-userNotes"
     hash_key        = "userId"
     range_key       = "title"
+    projection_type = "ALL"
+  }
+
+  # GSI para ordenar por fecha de creación (más eficiente para búsquedas)
+  global_secondary_index {
+    name            = "GSI-userNotesByDate"
+    hash_key        = "userId"
+    range_key       = "createdAt"
     projection_type = "ALL"
   }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "restore-note",
+  "version": "1.0.0",
+  "description": "Lambda para restaurar notas eliminadas (soft delete)",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1490.0"
+  }
+}

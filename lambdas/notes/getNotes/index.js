@@ -5,19 +5,33 @@
  * title (contiene), tagIds (al menos uno), tagSource,
  * createdAt (>=), updatedAt (>=), createdBy, lastModifiedBy.
  *
+ * Nuevos parámetros:
+ * - limit: resultados por página (default: 50, max: 100)
+ * - lastKey: para paginación
+ * - sortBy: createdAt | updatedAt | title (default: createdAt)
+ * - sortOrder: asc | desc (default: desc)
+ * - includeDeleted: true | false (default: false)
+ *
  * Ejemplo:
- * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/notes?userId=user123&tagIds=tag1,tag2"
+ * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/notes?userId=user123&limit=20&sortBy=updatedAt&sortOrder=desc"
  */
 
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
-const INDEX_NAME = 'GSI-userNotes';
 
 exports.handler = async (event) => {
   try {
     const qs = event.queryStringParameters || {};
-    const { userId } = qs;
+    const { 
+      userId, 
+      limit = '50', 
+      lastKey, 
+      sortBy = 'createdAt', 
+      sortOrder = 'desc',
+      includeDeleted = 'false'
+    } = qs;
+    
     if (!userId) {
       return {
         statusCode: 400,
@@ -25,20 +39,47 @@ exports.handler = async (event) => {
       };
     }
 
+    // Validar y parsear límite
+    const pageLimit = Math.min(parseInt(limit) || 50, 100);
+
+    // Determinar índice según sortBy
+    let indexName = 'GSI-userNotesByDate';
+    if (sortBy === 'title') {
+      indexName = 'GSI-userNotes';
+    }
+
     // Base del query
     const params = {
-      TableName:             TABLE_NAME,
-      IndexName:             INDEX_NAME,
-      KeyConditionExpression:'userId = :u',
+      TableName: TABLE_NAME,
+      IndexName: indexName,
+      KeyConditionExpression: 'userId = :u',
       ExpressionAttributeValues: {
         ':u': userId
       },
-      ScanIndexForward:      true
+      ScanIndexForward: sortOrder === 'asc',
+      Limit: pageLimit
     };
+
+    // Paginación
+    if (lastKey) {
+      try {
+        params.ExclusiveStartKey = JSON.parse(decodeURIComponent(lastKey));
+      } catch (err) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'lastKey inválido.' })
+        };
+      }
+    }
 
     // Construir FilterExpression dinámicamente
     const filters = [];
     const eav = params.ExpressionAttributeValues;
+
+    // Excluir notas eliminadas por defecto
+    if (includeDeleted !== 'true') {
+      filters.push('attribute_not_exists(deletedAt)');
+    }
 
     if (qs.title) {
       filters.push('contains(title, :title)');
@@ -84,9 +125,18 @@ exports.handler = async (event) => {
 
     // Ejecutar query
     const result = await docClient.query(params).promise();
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(result.Items || [])
+      body: JSON.stringify({
+        items: result.Items || [],
+        count: result.Count,
+        scannedCount: result.ScannedCount,
+        lastKey: result.LastEvaluatedKey 
+          ? encodeURIComponent(JSON.stringify(result.LastEvaluatedKey))
+          : null,
+        hasMore: result.LastEvaluatedKey !== undefined
+      })
     };
 
   } catch (err) {

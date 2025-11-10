@@ -52,6 +52,8 @@ locals {
     getNote           = { method = "GET"    , path = "/notes/{noteId}"       }
     updateNote        = { method = "PUT"    , path = "/notes/{noteId}"       }
     deleteNote        = { method = "DELETE" , path = "/notes/{noteId}"       }
+    searchNotes       = { method = "GET"    , path = "/notes/search"         }
+    restoreNote       = { method = "POST"   , path = "/notes/{noteId}/restore" }
     createTag         = { method = "POST"   , path = "/tags"                 }
     getTags           = { method = "GET"    , path = "/tags"                 }
     getTag            = { method = "GET"    , path = "/tags/{tagId}"         }

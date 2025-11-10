@@ -5,8 +5,13 @@
  * sender, inputType, createdAt (>=), updatedAt (>=),
  * tagIds (al menos uno de ellos), usedAI, createdBy, lastModifiedBy.
  *
+ * Nuevos parámetros de paginación:
+ * - limit: resultados por página (default: 50, max: 100)
+ * - lastKey: token de paginación (URL encoded)
+ * - sortOrder: asc | desc (default: asc)
+ *
  * Ejemplo:
- * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/messages?conversationId=conv123&sender=user123&tagIds=tag1,tag2"
+ * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/messages?conversationId=conv123&limit=20&sortOrder=desc"
  */
 
 const AWS = require('aws-sdk');
@@ -18,12 +23,17 @@ exports.handler = async (event) => {
     const qs = event.queryStringParameters || {};
     // Aceptar tanto conversationId como userId (para backward compatibility)
     const conversationId = qs.conversationId || qs.userId;
+    const { limit = '50', lastKey, sortOrder = 'asc' } = qs;
+    
     if (!conversationId) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'El query param conversationId o userId es requerido.' })
       };
     }
+
+    // Validar y parsear límite
+    const pageLimit = Math.min(parseInt(limit) || 50, 100);
 
     // Base del query
     const params = {
@@ -32,8 +42,21 @@ exports.handler = async (event) => {
       ExpressionAttributeValues: {
         ':c': conversationId
       },
-      ScanIndexForward: true // orden ascendente por timestamp
+      ScanIndexForward: sortOrder === 'asc',
+      Limit: pageLimit
     };
+
+    // Paginación
+    if (lastKey) {
+      try {
+        params.ExclusiveStartKey = JSON.parse(decodeURIComponent(lastKey));
+      } catch (err) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'lastKey inválido.' })
+        };
+      }
+    }
 
     // Construir FilterExpression dinámicamente
     const filters = [];
@@ -102,9 +125,18 @@ exports.handler = async (event) => {
 
     // Ejecutar query
     const result = await docClient.query(params).promise();
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(result.Items || [])
+      body: JSON.stringify({
+        items: result.Items || [],
+        count: result.Count,
+        scannedCount: result.ScannedCount,
+        lastKey: result.LastEvaluatedKey 
+          ? encodeURIComponent(JSON.stringify(result.LastEvaluatedKey))
+          : null,
+        hasMore: result.LastEvaluatedKey !== undefined
+      })
     };
 
   } catch (err) {

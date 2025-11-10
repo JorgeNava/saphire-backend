@@ -5,8 +5,13 @@
  * tagIds (al menos uno), tagSource, createdAt (>=), updatedAt (>=),
  * createdBy, lastModifiedBy.
  *
+ * Nuevos parámetros de paginación:
+ * - limit: resultados por página (default: 50, max: 100)
+ * - lastKey: token de paginación (URL encoded)
+ * - sortOrder: asc | desc (default: desc - más recientes primero)
+ *
  * Ejemplo:
- * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/thoughts?userId=user123&tagIds=tag1,tag2"
+ * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/thoughts?userId=user123&limit=20&sortOrder=desc"
  */
 
 const AWS = require('aws-sdk');
@@ -17,13 +22,17 @@ const INDEX_NAME   = 'GSI-userThoughts';
 exports.handler = async (event) => {
   try {
     const qs = event.queryStringParameters || {};
-    const { userId } = qs;
+    const { userId, limit = '50', lastKey, sortOrder = 'desc' } = qs;
+    
     if (!userId) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'El query param userId es requerido.' })
       };
     }
+
+    // Validar y parsear límite
+    const pageLimit = Math.min(parseInt(limit) || 50, 100);
 
     // Base del query
     const params = {
@@ -33,8 +42,21 @@ exports.handler = async (event) => {
       ExpressionAttributeValues: {
         ':u': userId
       },
-      ScanIndexForward:       true
+      ScanIndexForward:       sortOrder === 'asc',
+      Limit:                  pageLimit
     };
+
+    // Paginación
+    if (lastKey) {
+      try {
+        params.ExclusiveStartKey = JSON.parse(decodeURIComponent(lastKey));
+      } catch (err) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'lastKey inválido.' })
+        };
+      }
+    }
 
     // Construir FilterExpression dinámicamente
     const filters = [];
@@ -80,9 +102,18 @@ exports.handler = async (event) => {
 
     // Ejecutar query
     const result = await docClient.query(params).promise();
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(result.Items || [])
+      body: JSON.stringify({
+        items: result.Items || [],
+        count: result.Count,
+        scannedCount: result.ScannedCount,
+        lastKey: result.LastEvaluatedKey 
+          ? encodeURIComponent(JSON.stringify(result.LastEvaluatedKey))
+          : null,
+        hasMore: result.LastEvaluatedKey !== undefined
+      })
     };
 
   } catch (err) {
