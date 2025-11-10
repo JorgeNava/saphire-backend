@@ -1,6 +1,6 @@
 {
   "name": "saphire-backend",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Zafira Backend - AI Notes App",
   "scripts": {
     "build:layer": "cd lambdas/layers/tagService && ./build.sh",

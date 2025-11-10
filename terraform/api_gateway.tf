@@ -40,6 +40,7 @@ locals {
     getLists          = { method = "GET"    , path = "/lists"                }
     addItemToList     = { method = "POST"   , path = "/lists/{listId}/items" }
     updateList        = { method = "PUT"    , path = "/lists/{listId}"       }
+    updateListItem    = { method = "PUT"    , path = "/lists/{listId}/items/{itemId}" }
     deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{itemId}" }
     deleteList        = { method = "DELETE" , path = "/lists/{listId}"       }
     createListFromMessages = { method = "POST", path = "/lists/from-messages" }
@@ -59,11 +60,12 @@ locals {
     restoreNote       = { method = "POST"   , path = "/notes/{noteId}/restore" }
     createNoteFromMessage = { method = "POST", path = "/notes/from-message" }
     createNoteFromThought = { method = "POST", path = "/notes/from-thought" }
-    createTag         = { method = "POST"   , path = "/tags"                 }
-    getTags           = { method = "GET"    , path = "/tags"                 }
-    getTag            = { method = "GET"    , path = "/tags/{tagId}"         }
-    updateTag         = { method = "PUT"    , path = "/tags/{tagId}"         }
-    deleteTag         = { method = "DELETE" , path = "/tags/{tagId}"         }
+    createTag         = { method = "POST"   , path = "/tags"              }
+    getTags           = { method = "GET"    , path = "/tags"              }
+    getTag            = { method = "GET"    , path = "/tags/{tagId}"      }
+    getTagResources   = { method = "GET"    , path = "/tags/{tagId}/resources" }
+    updateTag         = { method = "PUT"    , path = "/tags/{tagId}"      }
+    deleteTag         = { method = "DELETE" , path = "/tags/{tagId}"      }
     recordAction      = { method = "POST"   , path = "/actions"              }
     getActions        = { method = "GET"    , path = "/actions"              }
     createUser        = { method = "POST"   , path = "/users"                }
