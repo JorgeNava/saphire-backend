@@ -4,6 +4,91 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
+## [0.0.6] - 2025-11-10
+
+### 🐛 Corregido
+
+#### Issue #1: updateListItem - HTTP 500
+- **PUT /lists/{listId}/items/{itemId}** - Fix crítico para marcar items completados
+  - Corregido error con palabra reservada `items` en DynamoDB usando `ExpressionAttributeNames`
+  - Agregado manejo de items legacy sin campo `completed`
+  - Valor por defecto `completed: false` para items existentes
+  - Mejores mensajes de error con detalles para debugging
+
+#### Issue #4: Update Note Tags
+- **PUT /notes/{noteId}** - Fix para actualización de etiquetas en notas
+  - Agregado soporte para campo `tagNames` del frontend
+  - Mantiene compatibilidad con campo `tags` (formato antiguo)
+  - Validación de `userId` requerido
+  - TagService crea tags nuevos automáticamente
+  - Actualiza correctamente `tagIds` y `tagNames`
+
+### 🎉 Agregado
+
+#### Issue #2: Paginación de Tags
+- **GET /tags** - Implementación completa de paginación
+  - Formato de respuesta paginado con `items`, `count`, `lastKey`, `hasMore`, `totalCount`
+  - Soporte para parámetro `limit` (1-100, default: 25)
+  - Soporte para `lastKey` (encoded base64) para navegación entre páginas
+  - Búsqueda con `searchTerm` usando `begins_with` en RANGE key (case-sensitive)
+  - Cálculo de `totalCount` en primera página sin búsqueda
+  - Ordenamiento por `usageCount` descendente
+  - Validación y manejo de errores mejorado
+
+#### Issue #3: Tag Resources Endpoint
+- **GET /tags/{tagId}/resources** - Nuevo endpoint para recursos por etiqueta
+  - Obtiene tag específico con validación de ownership
+  - Query en Thoughts table usando `GSI-userThoughts` con FilterExpression
+  - Query en Lists table usando `GSI-userLists` con FilterExpression
+  - Query en Notes table usando `GSI-userNotes` con FilterExpression
+  - Retorna contadores por tipo: `thoughts`, `lists`, `notes`, `total`
+  - Respuesta estructurada con tag completo y arrays de recursos
+
+#### Nuevas Lambdas
+- `getTagResources` - Obtener recursos asociados a una etiqueta
+
+### 🔧 Modificado
+
+#### Terraform
+- Agregada Lambda `getTagResources` a `lambdas.tf`
+- Agregada ruta `GET /tags/{tagId}/resources` a `api_gateway.tf`
+
+#### Modelos de Datos
+- **Tag Response (GET /tags)**: Nuevo formato paginado
+  ```json
+  {
+    "items": [...],
+    "count": 25,
+    "scannedCount": 25,
+    "lastKey": "encoded-key",
+    "hasMore": true,
+    "totalCount": 66
+  }
+  ```
+
+- **Tag Resources Response**: Nueva estructura
+  ```json
+  {
+    "tag": {...},
+    "thoughts": [...],
+    "lists": [...],
+    "notes": [...],
+    "counts": {
+      "thoughts": 0,
+      "lists": 1,
+      "notes": 0,
+      "total": 1
+    }
+  }
+  ```
+
+### 📝 Notas
+- Todos los issues críticos reportados por Frontend Team han sido resueltos
+- Backend 100% funcional para nueva pantalla de Tags en app móvil v1.3.0
+- Compatibilidad mantenida con formatos anteriores donde aplica
+
+---
+
 ## [0.0.5] - 2025-11-09
 
 ### 🎉 Agregado

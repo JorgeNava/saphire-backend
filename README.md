@@ -2,13 +2,14 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Versión actual del backend:*** 0.0.5
+***Versión actual del backend:*** 0.0.6
 
-**🎉 Novedades v0.0.5:**
-- Conversión de pensamientos a listas y notas
-- Creación automática de listas desde etiquetas
-- Referencias bidireccionales entre recursos
-- 3 nuevos endpoints de conversión
+**🎉 Novedades v0.0.6:**
+- Fix crítico: marcar items de lista completados
+- Paginación completa en endpoint de tags
+- Nuevo endpoint: recursos por etiqueta
+- Fix: actualización de tags en notas
+- Backend 100% funcional para pantalla Tags v1.3.0
 
 ---
 
@@ -25,6 +26,8 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 
 ### 🏷️ Sistema de Tags
 * **CRUD completo**: `/tags` con colores y `usageCount`
+* **Paginación**: `GET /tags` con `limit`, `lastKey`, `searchTerm` y `totalCount`
+* **Recursos por tag**: `GET /tags/{tagId}/resources` - Obtiene thoughts, lists y notes asociados
 * **Resolución automática**: TagService crea tags si no existen
 * **Filtrado avanzado**: Por nombre o UUID en todos los recursos
 * **Clasificación IA**: Tags automáticos en mensajes de audio
@@ -38,12 +41,14 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 ### 📋 Listas
 * **CRUD**: `/lists` con soporte completo de tags
 * **Gestión de items**: `POST /lists/{listId}/items`, `DELETE /lists/{listId}/items/{itemId}`
+* **Marcar completados**: `PUT /lists/{listId}/items/{itemId}` - Toggle estado `completed`
 * **Tags directos**: Acepta `tagIds`, `tagNames` y `tagSource` en actualizaciones
 * **Creación desde tags**: `POST /lists/from-tags` - Crea lista automáticamente desde 1-5 etiquetas
 
 ### 📝 Notas
 * **CRUD**: `/notes` con attachments en S3
-* **Tags**: Soporte completo con TagService
+* **Tags**: Soporte completo con TagService (acepta `tags` y `tagNames`)
+* **Actualización de tags**: `PUT /notes/{noteId}` crea tags automáticamente si no existen
 
 ### 👤 Usuarios
 * **Registro**: `POST /users`
