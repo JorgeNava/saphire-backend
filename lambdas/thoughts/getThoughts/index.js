@@ -88,7 +88,9 @@ exports.handler = async (event) => {
       filters.push('lastModifiedBy = :lastModifiedBy');
       eav[':lastModifiedBy'] = qs.lastModifiedBy;
     }
-    // Filtro por tagIds (UUIDs)
+    // Filtro por tagIds (UUIDs) - RECOMENDADO
+    // Usa UUIDs únicos para coincidencia exacta sin falsos positivos
+    // Ejemplo: tagIds=uuid-1,uuid-2
     if (qs.tagIds) {
       const tags = qs.tagIds.split(',').map(t => t.trim()).filter(Boolean);
       if (tags.length) {
@@ -102,7 +104,10 @@ exports.handler = async (event) => {
       }
     }
     
-    // NUEVO: Filtro por tagNames (nombres de tags)
+    // Filtro por tagNames (nombres de tags) - LEGACY
+    // ADVERTENCIA: Usa contains() que busca substring, puede tener falsos positivos
+    // Ejemplo: "Peliculas" también encuentra "Peliculas Por Ver"
+    // RECOMENDACIÓN: Usar tagIds en su lugar
     if (qs.tagNames) {
       const tagNamesList = qs.tagNames.split(',').map(t => t.trim()).filter(Boolean);
       if (tagNamesList.length) {

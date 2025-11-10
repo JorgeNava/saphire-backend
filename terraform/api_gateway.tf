@@ -39,6 +39,8 @@ locals {
     getList           = { method = "GET"    , path = "/lists/{listId}"       }
     getLists          = { method = "GET"    , path = "/lists"                }
     addItemToList     = { method = "POST"   , path = "/lists/{listId}/items" }
+    addItemToListV2   = { method = "PATCH"  , path = "/lists/items" }
+    deleteItemFromList = { method = "DELETE", path = "/lists/items" }
     updateList        = { method = "PUT"    , path = "/lists/{listId}"       }
     updateListItem    = { method = "PUT"    , path = "/lists/{listId}/items/{itemId}" }
     deleteListItem    = { method = "DELETE" , path = "/lists/{listId}/items/{itemId}" }
@@ -46,6 +48,7 @@ locals {
     createListFromMessages = { method = "POST", path = "/lists/from-messages" }
     createListFromThoughts = { method = "POST", path = "/lists/from-thoughts" }
     createListFromTags = { method = "POST", path = "/lists/from-tags" }
+    refreshListFromTags = { method = "POST", path = "/lists/{listId}/refresh-from-tags" }
     createThought     = { method = "POST"   , path = "/thoughts"             }
     getThoughts       = { method = "GET"    , path = "/thoughts"             }
     getThought        = { method = "GET"    , path = "/thoughts/{thoughtId}" }
@@ -60,6 +63,7 @@ locals {
     restoreNote       = { method = "POST"   , path = "/notes/{noteId}/restore" }
     createNoteFromMessage = { method = "POST", path = "/notes/from-message" }
     createNoteFromThought = { method = "POST", path = "/notes/from-thought" }
+    addThoughtToNote  = { method = "POST", path = "/notes/{noteId}/add-thought" }
     createTag         = { method = "POST"   , path = "/tags"              }
     getTags           = { method = "GET"    , path = "/tags"              }
     getTag            = { method = "GET"    , path = "/tags/{tagId}"      }

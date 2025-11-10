@@ -2,9 +2,16 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Versión actual del backend:*** 0.0.6
+***Versión actual del backend:*** 0.0.7
 
-**🎉 Novedades v0.0.6:**
+**🎉 Novedades v0.0.7:**
+- ✨ Nuevo endpoint: Agregar pensamiento a nota existente (`POST /notes/{noteId}/add-thought`)
+- ✨ Nuevo endpoint: Refresh de listas desde etiquetas (`POST /lists/{listId}/refresh-from-tags`)
+- 🔒 Validación de nombres únicos para etiquetas (case-insensitive)
+- 📝 Scripts de deployment automatizados
+- 📚 Documentación completa de testing y deployment
+
+**Novedades v0.0.6:**
 - Fix crítico: marcar items de lista completados
 - Paginación completa en endpoint de tags
 - Nuevo endpoint: recursos por etiqueta
@@ -26,6 +33,7 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 
 ### 🏷️ Sistema de Tags
 * **CRUD completo**: `/tags` con colores y `usageCount`
+* **Validación única**: Nombres únicos por usuario (case-insensitive) 🆕
 * **Paginación**: `GET /tags` con `limit`, `lastKey`, `searchTerm` y `totalCount`
 * **Recursos por tag**: `GET /tags/{tagId}/resources` - Obtiene thoughts, lists y notes asociados
 * **Resolución automática**: TagService crea tags si no existen
@@ -44,10 +52,12 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 * **Marcar completados**: `PUT /lists/{listId}/items/{itemId}` - Toggle estado `completed`
 * **Tags directos**: Acepta `tagIds`, `tagNames` y `tagSource` en actualizaciones
 * **Creación desde tags**: `POST /lists/from-tags` - Crea lista automáticamente desde 1-5 etiquetas
+* **Refresh desde tags**: `POST /lists/{listId}/refresh-from-tags` - Actualiza lista con pensamientos nuevos 🆕
 
 ### 📝 Notas
 * **CRUD**: `/notes` con attachments en S3
 * **Tags**: Soporte completo con TagService (acepta `tags` y `tagNames`)
+* **Agregar pensamiento**: `POST /notes/{noteId}/add-thought` - Agrega pensamiento como bullet point 🆕
 * **Actualización de tags**: `PUT /notes/{noteId}` crea tags automáticamente si no existen
 
 ### 👤 Usuarios

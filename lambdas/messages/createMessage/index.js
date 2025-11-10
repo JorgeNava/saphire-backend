@@ -70,7 +70,15 @@ exports.handler = async (event) => {
         .invoke({
           FunctionName:   INTENT_LAMBDA,
           InvocationType: 'RequestResponse',
-          Payload:        JSON.stringify({ sender, content })
+          Payload:        JSON.stringify({ 
+            sender, 
+            content,
+            conversationId,
+            timestamp,
+            tagIds,
+            tagNames,
+            tagSource: baseItem.tagSource
+          })
         })
         .promise();
 

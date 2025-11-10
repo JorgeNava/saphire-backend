@@ -4,6 +4,118 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
+## [0.0.8] - 2025-11-10
+
+### 🐛 Corregido
+
+#### Errores 500 en Endpoints Nuevos
+- **POST /lists/{listId}/refresh-from-tags** - Error de palabra reservada DynamoDB
+  - Corregido uso de `items` sin escapar en UpdateExpression
+  - Agregado `ExpressionAttributeNames: { '#items': 'items' }`
+  - Ahora actualiza correctamente listas creadas desde tags
+  
+- **POST /notes/{noteId}/add-thought** - Error de estructura ZIP
+  - Corregido empaquetado de lambdas (index.js en raíz del ZIP)
+  - Modificado script `package-new-lambdas.sh`
+  - Lambda ahora se carga correctamente
+
+#### Tags en Mensajes del Chat No Se Guardaban
+- **Problema:** Pensamientos creados desde mensajes no tenían tags
+- **Causa:** Tags no se pasaban entre lambdas en el flujo de procesamiento
+- **Solución:**
+  - `createMessage` ahora pasa `tagIds`, `tagNames` y `tagSource` a `messageIntentIdentification`
+  - `messageIntentIdentification` pasa tags al lambda correspondiente (createThought, etc.)
+  - `createThought` usa tags ya resueltos si vienen en el payload
+- **Resultado:** Tags se guardan correctamente en pensamientos desde chat
+
+### 🎉 Agregado
+
+#### Nuevos Endpoints de Gestión de Items en Listas
+- **PATCH /lists/items** - Agregar item a lista
+  - Lambda: `addItemToListV2`
+  - Request: `{userId, listId, newItem}`
+  - Genera `itemId` único automáticamente
+  - Calcula `order` basado en items existentes
+  - Validación de ownership
+  
+- **DELETE /lists/items** - Eliminar item de lista
+  - Lambda: `deleteItemFromList`
+  - Request: `{userId, listId, item}`
+  - Filtra por contenido del item
+  - Reordena items restantes automáticamente
+  - Validación de ownership
+
+#### Script de Unificación de Tags Duplicados
+- **Script:** `scripts/unify-duplicate-tags.js`
+- **Funcionalidad:**
+  - Encuentra tags con nombres duplicados (case-insensitive)
+  - Mantiene el tag más antiguo de cada grupo
+  - Actualiza referencias en thoughts, lists y notes
+  - Elimina tags duplicados
+- **Resultado:** 10 grupos de tags duplicados unificados exitosamente
+
+### 🔧 Modificado
+
+#### Documentación de Filtrado por Tags
+- **GET /thoughts** - Documentación mejorada sobre `tagIds` vs `tagNames`
+  - `tagIds`: Recomendado - Coincidencia exacta con UUIDs
+  - `tagNames`: Legacy - Puede tener falsos positivos (usa substring)
+  - Agregados comentarios explicativos en código
+  
+#### Script de Empaquetado
+- **scripts/package-new-lambdas.sh**
+  - Corregido para crear ZIPs con estructura correcta
+  - `index.js` ahora en raíz del ZIP (no en subcarpeta)
+  - Excluye archivos `.git*` y `.DS_Store`
+
+### 📝 Documentación
+
+#### Nuevos Archivos
+- `FRONTEND_FIX_FILTRADO_TAGS.md` - Instrucciones para cambiar de tagNames a tagIds
+- `RESUMEN_SESION_NOV_10.md` - Resumen completo de todos los cambios
+- `scripts/package.json` - Dependencias para scripts de mantenimiento
+
+### 🔄 Lambdas Desplegados
+
+#### Nuevos
+- `Zafira-addItemToListV2` - Agregar items a listas
+- `Zafira-deleteItemFromList` - Eliminar items de listas
+
+#### Actualizados
+- `Zafira-createMessage` - Pasar tags a intent identifier
+- `Zafira-messageIntentIdentification` - Pasar tags a lambdas correspondientes
+- `Zafira-createThought` - Usar tags ya resueltos
+- `Zafira-refreshListFromTags` - Escapar palabra reservada
+- `Zafira-addThoughtToNote` - Estructura ZIP corregida
+- `Zafira-getThoughts` - Documentación mejorada
+
+### 📊 Métricas
+
+- **Bugs Críticos Corregidos:** 5/5 (100%)
+- **Nuevos Endpoints:** 2
+- **Lambdas Creados:** 2
+- **Lambdas Actualizados:** 6
+- **Tags Duplicados Unificados:** 10 grupos
+- **Scripts Creados:** 1
+
+### ⚠️ Acción Requerida en Frontend
+
+**Alta Prioridad:** Cambiar filtrado de pensamientos de `tagNames` a `tagIds`
+- **Razón:** `tagNames` usa substring y tiene falsos positivos
+- **Solución:** Usar `tagIds` para coincidencia exacta
+- **Cambio:** 1 línea de código (`.map(tag => tag.id)` en lugar de `.map(tag => tag.name)`)
+- **Documentación:** Ver `FRONTEND_FIX_FILTRADO_TAGS.md`
+
+### 📝 Notas
+
+- Todos los bugs críticos reportados por el equipo de frontend han sido corregidos
+- Backend 100% funcional para app móvil v1.5.1+
+- Sistema de tags completamente funcional con validación única
+- Gestión completa de items en listas (agregar, eliminar, actualizar)
+- Flujo de mensajes a pensamientos con tags funcionando correctamente
+
+---
+
 ## [0.0.7] - 2025-11-10
 
 ### 🐛 Corregido

@@ -20,7 +20,7 @@ exports.handler = async (event) => {
     } else {
       payload = event;
     }
-    const { userId, content, tags, createdBy } = payload;
+    const { userId, content, tags, tagIds: existingTagIds, tagNames: existingTagNames, tagSource, createdBy } = payload;
     if (!userId || !content) {
       return { 
         statusCode: 400, 
@@ -28,8 +28,19 @@ exports.handler = async (event) => {
       };
     }
 
-    // Resolver tags usando TagService
-    const { tagIds, tagNames } = await tagService.parseAndResolveTags(tags, userId);
+    // Si ya vienen tagIds y tagNames resueltos (desde messageIntentIdentification), usarlos
+    // Si no, resolver tags usando TagService
+    let tagIds, tagNames;
+    if (existingTagIds && existingTagNames) {
+      console.log('createThought - Usando tags ya resueltos:', { existingTagIds, existingTagNames });
+      tagIds = existingTagIds;
+      tagNames = existingTagNames;
+    } else {
+      console.log('createThought - Resolviendo tags:', tags);
+      const resolved = await tagService.parseAndResolveTags(tags, userId);
+      tagIds = resolved.tagIds;
+      tagNames = resolved.tagNames;
+    }
 
     // Guardar el thought
     const thoughtId = uuidv4();
@@ -40,7 +51,7 @@ exports.handler = async (event) => {
       content,
       tagIds,
       tagNames,
-      tagSource: tags ? 'Manual' : null,
+      tagSource: tagSource || (tags ? 'Manual' : null),
       createdAt: now,
       updatedAt: now,
       createdBy: createdBy || 'Manual',

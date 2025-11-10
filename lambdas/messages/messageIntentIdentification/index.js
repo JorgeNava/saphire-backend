@@ -7,8 +7,10 @@
 const AWS   = require('aws-sdk');
 
 const lambda      = new AWS.Lambda({ region: process.env.AWS_REGION });
+const docClient   = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY  = process.env.OPENAI_API_KEY_AWS_USE;
+const MSG_TABLE   = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 
 // Mapeo de intent → Lambda a invocar
 const DISPATCH = {
@@ -23,10 +25,12 @@ exports.handler = async (event) => {
       ? JSON.parse(event)
       : event || {};
 
-    const { sender, content } = payload;
+    const { sender, content, tagIds, tagNames, tagSource } = payload;
     if (!sender || !content) {
       return { statusCode: 400, body: JSON.stringify({ error: 'sender y content son requeridos.' }) };
     }
+    
+    console.log('messageIntentIdentification - Tags recibidos:', { tagIds, tagNames, tagSource });
 
     // 1) Determinar intent con OpenAI
     const systemPrompt = `
@@ -56,14 +60,26 @@ Respuesta SÓLO con uno de los tokens: thought, list o research.
     // 2) Despachar la Lambda correspondiente de forma asíncrona
     const targetFn = DISPATCH[token];
     if (targetFn) {
+      const lambdaPayload = {
+        userId: sender,
+        content,
+        createdBy: 'IA'
+      };
+      
+      // Agregar tags si existen
+      if (tagIds && tagIds.length > 0) {
+        lambdaPayload.tags = tagNames; // El TagService espera tagNames
+        lambdaPayload.tagIds = tagIds;
+        lambdaPayload.tagNames = tagNames;
+        lambdaPayload.tagSource = tagSource;
+      }
+      
+      console.log('messageIntentIdentification - Invocando lambda:', targetFn, 'con payload:', lambdaPayload);
+      
       await lambda.invoke({
         FunctionName:   targetFn,
         InvocationType: 'Event',
-        Payload:        JSON.stringify({
-          userId: sender,
-          content,
-          createdBy: 'IA'
-        })
+        Payload:        JSON.stringify(lambdaPayload)
       }).promise();
     }
 
