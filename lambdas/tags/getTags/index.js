@@ -39,23 +39,12 @@ exports.handler = async (event) => {
       ScanIndexForward: sortOrder === 'asc'
     };
 
-    // 2. Configurar KeyConditionExpression (con o sin búsqueda)
-    if (searchTerm) {
-      // Búsqueda usando begins_with en el RANGE key (name)
-      // Nota: búsqueda case-sensitive por limitación de DynamoDB
-      queryParams.KeyConditionExpression = 'userId = :userId AND begins_with(#name, :searchTerm)';
-      queryParams.ExpressionAttributeNames = { '#name': 'name' };
-      queryParams.ExpressionAttributeValues = {
-        ':userId': userId,
-        ':searchTerm': searchTerm
-      };
-    } else {
-      // Sin búsqueda, solo por userId
-      queryParams.KeyConditionExpression = 'userId = :userId';
-      queryParams.ExpressionAttributeValues = {
-        ':userId': userId
-      };
-    }
+    // 2. Configurar KeyConditionExpression
+    // Para búsqueda case-insensitive, obtenemos todos los tags y filtramos en memoria
+    queryParams.KeyConditionExpression = 'userId = :userId';
+    queryParams.ExpressionAttributeValues = {
+      ':userId': userId
+    };
 
     // 3. Agregar lastKey si existe (para paginación)
     if (lastKey) {
@@ -73,11 +62,34 @@ exports.handler = async (event) => {
       }
     }
 
-    // 4. Ejecutar query principal
+    // 4. Ejecutar query principal (sin limit si hay búsqueda)
+    if (searchTerm) {
+      // Para búsqueda, necesitamos obtener todos los tags para filtrar
+      delete queryParams.Limit;
+    }
     const result = await docClient.query(queryParams).promise();
 
-    // 5. Calcular totalCount (solo en primera página sin búsqueda)
-    let totalCount = result.Count;
+    // 5. Filtrar por searchTerm (case-insensitive) si existe
+    let filteredItems = result.Items || [];
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filteredItems = filteredItems.filter(tag => 
+        tag.name && tag.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // 6. Ordenar por usageCount descendente
+    const sortedItems = filteredItems.sort((a, b) => 
+      (b.usageCount || 0) - (a.usageCount || 0)
+    );
+
+    // 7. Aplicar paginación manual si hay búsqueda
+    const paginatedItems = searchTerm 
+      ? sortedItems.slice(0, limitNum)
+      : sortedItems;
+
+    // 8. Calcular totalCount
+    let totalCount = filteredItems.length;
     if (!lastKey && !searchTerm) {
       try {
         const countResult = await docClient.query({
@@ -90,30 +102,24 @@ exports.handler = async (event) => {
         totalCount = countResult.Count;
       } catch (e) {
         console.error('Error calculating totalCount:', e);
-        // Continuar sin totalCount exacto
       }
     }
 
-    // 6. Codificar lastKey para siguiente página
-    const encodedLastKey = result.LastEvaluatedKey
+    // 9. Codificar lastKey para siguiente página (solo si no hay búsqueda)
+    const encodedLastKey = !searchTerm && result.LastEvaluatedKey
       ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64')
       : null;
 
-    // 7. Ordenar por usageCount descendente (después del query)
-    const sortedItems = (result.Items || []).sort((a, b) => 
-      (b.usageCount || 0) - (a.usageCount || 0)
-    );
-
-    // 8. Retornar respuesta paginada
+    // 10. Retornar respuesta paginada
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        items: sortedItems,
-        count: result.Count,
+        items: paginatedItems,
+        count: paginatedItems.length,
         scannedCount: result.ScannedCount,
         lastKey: encodedLastKey,
-        hasMore: !!result.LastEvaluatedKey,
+        hasMore: searchTerm ? (sortedItems.length > limitNum) : !!result.LastEvaluatedKey,
         totalCount: totalCount
       })
     };

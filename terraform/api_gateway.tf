@@ -84,6 +84,13 @@ resource "aws_apigatewayv2_route" "routes" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda[each.key].id}"
 }
 
+# Ruta adicional para DELETE /lists (sin path parameter) - compatibilidad con frontend legacy
+resource "aws_apigatewayv2_route" "delete_list_legacy" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "DELETE /lists"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda["deleteList"].id}"
+}
+
 #################################################################
 # 4. Permisos: autorizar API Gateway a invocar todas las Lambdas
 #################################################################

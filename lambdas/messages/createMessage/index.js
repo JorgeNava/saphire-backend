@@ -20,11 +20,15 @@ exports.handler = async (event) => {
     // 0) Parsear entrada
     const body = JSON.parse(event.body || '{}');
     const conversationId = body.conversationId || body.userId; // Aceptar userId como conversationId
-    const { sender, content, tags, tagNames: inputTagNames } = body;
+    const { sender, content, tags, tagNames: inputTagNames, inputType } = body;
+    
+    // Log para debugging
+    console.log('createMessage - conversationId:', conversationId, 'sender:', sender, 'content length:', content?.length);
     
     if (!conversationId || !sender || !content) {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'conversationId (o userId), sender y content son requeridos.' })
       };
     }
@@ -42,14 +46,16 @@ exports.handler = async (event) => {
       messageId,
       sender,
       content,
-      inputType: 'text',
+      inputType: inputType || 'text',
       tagIds,
       tagNames,
-      tagSource: tags ? 'Manual' : null,
+      tagSource: tags || inputTagNames ? 'Manual' : null,
       createdAt: timestamp,
       updatedAt: timestamp,
       intent: null
     };
+
+    console.log('createMessage - Guardando mensaje:', { conversationId, messageId, timestamp });
 
     await docClient
       .put({
@@ -95,8 +101,10 @@ exports.handler = async (event) => {
     }
 
     // 4) Devolver al cliente el item completo
+    console.log('createMessage - Mensaje guardado exitosamente:', messageId);
     return {
       statusCode: 201,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(baseItem)
     };
 
@@ -104,7 +112,11 @@ exports.handler = async (event) => {
     console.error('createMessage error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error al crear el mensaje.' })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        error: 'Error al crear el mensaje.',
+        details: err.message 
+      })
     };
   }
 };

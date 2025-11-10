@@ -26,7 +26,7 @@ cd "$BASE_DIR/lambdas/layers/tagService"
 echo -e "\n${BLUE}Paso 2: Empaquetando Lambdas modificadas${NC}"
 echo "------------------------------------------------"
 cd "$BASE_DIR"
-./scripts/package-lambdas.sh
+./scripts/package-all-lambdas.sh
 
 echo -e "\n${GREEN}✅ Build completo exitoso!${NC}"
 echo -e "\n${YELLOW}Archivos generados en: lambdas/dist/${NC}"

@@ -25,9 +25,12 @@ exports.handler = async (event) => {
     const conversationId = qs.conversationId || qs.userId;
     const { limit = '50', lastKey, sortOrder = 'asc' } = qs;
     
+    console.log('getMessages - conversationId:', conversationId, 'limit:', limit, 'sortOrder:', sortOrder);
+    
     if (!conversationId) {
       return {
         statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'El query param conversationId o userId es requerido.' })
       };
     }
@@ -126,8 +129,11 @@ exports.handler = async (event) => {
     // Ejecutar query
     const result = await docClient.query(params).promise();
     
+    console.log('getMessages - Resultados encontrados:', result.Count, 'items');
+    
     return {
       statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: result.Items || [],
         count: result.Count,
@@ -143,7 +149,11 @@ exports.handler = async (event) => {
     console.error('getMessages error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error al listar mensajes.' })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        error: 'Error al listar mensajes.',
+        details: err.message 
+      })
     };
   }
 };
