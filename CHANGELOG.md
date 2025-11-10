@@ -4,9 +4,55 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
+## [0.0.7] - 2025-11-10
+
+### 🐛 Corregido
+
+#### DELETE /lists - Soporte para formato legacy del frontend
+- **Problema:** Frontend enviaba `DELETE /lists` con body JSON, pero API Gateway solo tenía configurado `DELETE /lists/{listId}`
+- **Solución:** Agregada ruta adicional `DELETE /lists` en API Gateway que apunta a la misma lambda
+- **Impacto:** Eliminación de listas ahora funciona desde la app móvil
+- **Archivos modificados:**
+  - `terraform/api_gateway.tf` - Nueva ruta `delete_list_legacy`
+
+#### GET /tags - Búsqueda case-insensitive
+- **Problema:** Búsqueda por `searchTerm` era case-sensitive (limitación de DynamoDB begins_with)
+- **Solución:** Implementado filtrado en memoria después del query para búsqueda case-insensitive
+- **Mejoras:**
+  - Búsqueda ahora usa `includes()` en lugar de `begins_with`
+  - Funciona con mayúsculas, minúsculas y combinaciones
+  - Mantiene ordenamiento por `usageCount`
+  - Paginación manual cuando hay búsqueda activa
+- **Ejemplo:** `searchTerm=trabajo` ahora encuentra "Trabajo", "TRABAJO", "trabajo personal", etc.
+- **Archivos modificados:**
+  - `lambdas/tags/getTags/index.js` - Lógica de filtrado mejorada
+
+### 🔧 Modificado
+
+#### Logging mejorado en lambdas de mensajes
+- **createMessage:** Agregado logging de conversationId, sender, y confirmación de guardado
+- **getMessages:** Agregado logging de parámetros de búsqueda y cantidad de resultados
+- **Mejoras:** Headers `Content-Type: application/json` en todas las respuestas
+- **Beneficio:** Mejor debugging y troubleshooting en producción
+
+### 📝 Notas
+- La búsqueda de tags ahora obtiene todos los tags del usuario cuando hay `searchTerm` para garantizar resultados completos
+- Para usuarios con muchos tags (>1000), considerar implementar paginación con cursor en el futuro
+- Ruta legacy `DELETE /lists` mantiene compatibilidad con frontend actual
+
+---
+
 ## [0.0.6] - 2025-11-10
 
 ### 🐛 Corregido
+
+#### Issue #5: DELETE /lists - Compatibilidad con Frontend
+- **DELETE /lists/{listId}** - Soporte para múltiples formatos de request
+  - Soporta path parameter: `DELETE /lists/{listId}?userId=user123` (REST estándar)
+  - Soporta body: `DELETE /lists/{listId}` con `{"userId":"user123"}` (compatibilidad frontend)
+  - Agregada validación de ownership antes de eliminar
+  - Mejores mensajes de error con códigos HTTP apropiados (403, 404)
+  - Headers `Content-Type: application/json` en todas las respuestas
 
 #### Issue #1: updateListItem - HTTP 500
 - **PUT /lists/{listId}/items/{itemId}** - Fix crítico para marcar items completados
