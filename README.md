@@ -366,6 +366,143 @@ await tagService.incrementUsageCount('tagId123');
 
 ---
 
+## 🚀 Deployment Automático
+
+### GitHub Actions CI/CD
+
+Este proyecto utiliza **GitHub Actions** para deployment automático a AWS. Cada push a la rama `main` desencadena el workflow completo.
+
+#### Proceso Automático
+
+El workflow `.github/workflows/deploy.yml` ejecuta los siguientes pasos:
+
+1. **Checkout del código** - Clona el repositorio
+2. **Configuración de AWS** - Autentica con credenciales de GitHub Secrets
+3. **Setup de Node.js** - Instala Node.js 18.x
+4. **Build & Zip de Lambdas** - Empaqueta todos los lambdas automáticamente
+   ```bash
+   # Itera sobre lambdas/*/* y genera ZIPs
+   # Instala dependencias de producción
+   # Crea archivos Zafira-{functionName}.zip
+   ```
+5. **Setup de Terraform** - Instala Terraform 1.5.7
+6. **Generación de terraform.tfvars** - Crea archivo de variables desde secrets
+7. **Terraform Init** - Inicializa con backend remoto en S3
+8. **Terraform Plan** - Verifica cambios a aplicar
+9. **Terraform Apply** - Despliega infraestructura y lambdas a AWS
+
+#### Cómo Desplegar
+
+**Método 1: Push a main (Recomendado)**
+```bash
+# Hacer cambios en el código
+git add .
+git commit -m "feat: descripción de cambios"
+git push origin main
+
+# GitHub Actions se ejecuta automáticamente
+# Monitorear progreso:
+gh run watch
+```
+
+**Método 2: Deployment Manual (Solo si es necesario)**
+```bash
+# 1. Package lambdas
+npm run build:all
+
+# 2. Deploy con Terraform
+cd terraform
+terraform init \
+  -backend-config="bucket=zafira-terraform-states" \
+  -backend-config="key=env/Zafira/terraform.tfstate" \
+  -backend-config="region=us-east-1" \
+  -backend-config="dynamodb_table=zafira-terraform-locks" \
+  -backend-config="encrypt=true"
+
+terraform plan -out=tfplan
+terraform apply tfplan
+```
+
+#### Monitoreo del Deployment
+
+```bash
+# Ver estado de workflows
+gh run list --limit 5
+
+# Ver logs en tiempo real
+gh run watch
+
+# Ver logs de un run específico
+gh run view --log
+
+# Ver en GitHub
+# https://github.com/JorgeNava/saphire-backend/actions
+```
+
+#### Requisitos
+
+Para que el deployment automático funcione, asegúrate de tener configurados en **GitHub Secrets**:
+
+**AWS Credentials:**
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+**DynamoDB Tables:**
+- `AWS_DYNAMODB_TABLE_MESSAGES`
+- `AWS_DYNAMODB_TABLE_TAGS`
+- `AWS_DYNAMODB_TABLE_LISTS`
+- `AWS_DYNAMODB_TABLE_USERS`
+- `AWS_DYNAMODB_TABLE_NOTES`
+- `AWS_DYNAMODB_TABLE_THOUGHTS`
+- `AWS_DYNAMODB_TABLE_ACTIONS_LOG`
+
+**S3 Buckets:**
+- `AWS_S3_MESSAGE_ATTACHMENTS_BUCKET`
+- `AWS_S3_NOTES_ATTACHMENTS_BUCKET`
+
+**OpenAI:**
+- `OPENAI_API_BASE_URL`
+- `OPENAI_API_KEY_AWS_USE`
+
+**Lambda Names:**
+- `LAMBDA_NAME_CREATE_THOUGHT`
+- `LAMBDA_NAME_CREATE_LIST_THROUGH_AI`
+- `LAMBDA_NAME_PERFORM_RESEARCH`
+- `LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION`
+
+**Feature Flags:**
+- `APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE`
+
+#### Tiempo de Deployment
+
+- **Duración típica:** 5-8 minutos
+- **Build de lambdas:** ~2 minutos
+- **Terraform apply:** ~3-5 minutos
+- **Verificación:** ~1 minuto
+
+#### Troubleshooting
+
+**Si el workflow falla:**
+
+1. **Revisar logs en GitHub Actions**
+   ```bash
+   gh run view --log
+   ```
+
+2. **Verificar secrets configurados**
+   - Settings → Secrets and variables → Actions
+
+3. **Verificar permisos IAM**
+   - Usuario de AWS debe tener permisos para Lambda, API Gateway, DynamoDB, S3
+
+4. **Rollback si es necesario**
+   ```bash
+   git revert HEAD
+   git push origin main
+   ```
+
+---
+
 ## Cómo se crean los pensamientos
 
 Cuando un usuario envía un mensaje (nunca AI), el sistema invoca en paralelo dos Lambdas:

@@ -32,11 +32,33 @@ jobs:
         with:
           node-version: 18
 
-      # 4) Build & Zip de cada Lambda
+      # 4) Build Lambda Layer TagService
+      - name: Build Lambda Layer TagService
+        run: |
+          echo "📦 Building Lambda Layer: TagService"
+          LAYER_DIR="lambdas/layers/tagService"
+          NODEJS_DIR="$LAYER_DIR/nodejs"
+          mkdir -p build
+          
+          # Install dependencies
+          cd "$NODEJS_DIR"
+          npm install --production
+          cd ../../..
+          
+          # Create ZIP
+          cd "$LAYER_DIR"
+          zip -r "../../../build/${TABLE_PREFIX}-layer-tagService.zip" nodejs/ \
+            -x "nodejs/package-lock.json" \
+            -x "nodejs/.DS_Store" \
+            -x "nodejs/node_modules/.bin/*" \
+            -x "*.md"
+          cd ../../..
+          
+          echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-tagService.zip"
+
+      # 5) Build & Zip de cada Lambda
       - name: Build & Zip Lambdas
         run: |
-          rm -rf build
-          mkdir build
           for dir in lambdas/*/*; do
             if [ -d "$dir" ]; then
               fn=$(basename "$dir")
@@ -50,13 +72,13 @@ jobs:
             fi
           done
 
-      # 5) Instalamos Terraform
+      # 6) Instalamos Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
 
-      # 6) Generar terraform.tfvars con los secrets
+      # 7) Generar terraform.tfvars con los secrets
       - name: Generate terraform.tfvars
         working-directory: ./terraform
         run: |
@@ -81,7 +103,7 @@ jobs:
           app_feature_flag_delete_audio_after_transcribe = "${{ secrets.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE }}"
           EOF
 
-      # 7) Terraform Init con backend configurado vía CLI
+      # 8) Terraform Init con backend configurado vía CLI
       - name: Terraform Init
         working-directory: ./terraform
         run: |
@@ -92,12 +114,12 @@ jobs:
             -backend-config="dynamodb_table=zafira-terraform-locks" \
             -backend-config="encrypt=true"
 
-      # 8) (Opcional) Verifica cambios
+      # 9) (Opcional) Verifica cambios
       - name: Terraform Plan
         working-directory: ./terraform
         run: terraform plan -out=tfplan
 
-      # 9) Aplica la infraestructura
+      # 10) Aplica la infraestructura
       - name: Terraform Apply
         working-directory: ./terraform
         run: terraform apply -auto-approve tfplan
