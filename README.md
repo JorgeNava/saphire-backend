@@ -441,37 +441,53 @@ gh run view --log
 
 #### Requisitos
 
-Para que el deployment automático funcione, asegúrate de tener configurados en **GitHub Secrets**:
+Para que el deployment automático funcione, asegúrate de tener configurados en **GitHub Secrets** (Settings → Secrets and variables → Actions):
+
+**Aplicación:**
+- `APP_NAME` - Nombre de la aplicación
+- `APP_VERSION` - Versión actual
+- `APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE` - Feature flag para eliminar audio después de transcribir
+- `TABLE_PREFIX` - Prefijo para recursos (ej: "Zafira")
 
 **AWS Credentials:**
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
+- `AWS_ACCESS_KEY_ID` - Access Key ID para AWS
+- `AWS_SECRET_ACCESS_KEY` - Secret Access Key para AWS
+- `AWS_ACCOUNT_ID` - ID de la cuenta AWS
+- `AWS_S3_ACCESS_KEY_ID` - Access Key ID específico para S3
+- `AWS_S3_SECRET_ACCESS_KEY` - Secret Access Key específico para S3
 
 **DynamoDB Tables:**
-- `AWS_DYNAMODB_TABLE_MESSAGES`
-- `AWS_DYNAMODB_TABLE_TAGS`
-- `AWS_DYNAMODB_TABLE_LISTS`
-- `AWS_DYNAMODB_TABLE_USERS`
-- `AWS_DYNAMODB_TABLE_NOTES`
-- `AWS_DYNAMODB_TABLE_THOUGHTS`
-- `AWS_DYNAMODB_TABLE_ACTIONS_LOG`
+- `AWS_DYNAMODB_TABLE_MESSAGES` - Tabla de mensajes
+- `AWS_DYNAMODB_TABLE_TAGS` - Tabla de etiquetas
+- `AWS_DYNAMODB_TABLE_LISTS` - Tabla de listas
+- `AWS_DYNAMODB_TABLE_USERS` - Tabla de usuarios
+- `AWS_DYNAMODB_TABLE_NOTES` - Tabla de notas
+- `AWS_DYNAMODB_TABLE_THOUGHTS` - Tabla de pensamientos
+- `AWS_DYNAMODB_TABLE_ACTIONS_LOG` - Tabla de log de acciones
+- `DYNAMO_TABLE` - Tabla DynamoDB legacy (si aplica)
+- `LISTS_TABLE` - Tabla de listas legacy (si aplica)
 
 **S3 Buckets:**
-- `AWS_S3_MESSAGE_ATTACHMENTS_BUCKET`
-- `AWS_S3_NOTES_ATTACHMENTS_BUCKET`
+- `AWS_S3_MESSAGE_ATTACHMENTS_BUCKET` - Bucket para attachments de mensajes
+- `AWS_S3_NOTES_ATTACHMENTS_BUCKET` - Bucket para attachments de notas
+- `AUDIO_BUCKET` - Bucket para archivos de audio
 
 **OpenAI:**
-- `OPENAI_API_BASE_URL`
-- `OPENAI_API_KEY_AWS_USE`
+- `OPENAI_API_BASE_URL` - URL base de la API de OpenAI
+- `OPENAI_API_KEY` - API Key de OpenAI (legacy)
+- `OPENAI_API_KEY_AWS_USE` - API Key de OpenAI para uso en AWS
 
 **Lambda Names:**
-- `LAMBDA_NAME_CREATE_THOUGHT`
-- `LAMBDA_NAME_CREATE_LIST_THROUGH_AI`
-- `LAMBDA_NAME_PERFORM_RESEARCH`
-- `LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION`
+- `LAMBDA_NAME_CREATE_THOUGHT` - Nombre del lambda para crear pensamientos
+- `LAMBDA_NAME_CREATE_LIST_THROUGH_AI` - Nombre del lambda para crear listas con IA
+- `LAMBDA_NAME_PERFORM_RESEARCH` - Nombre del lambda para realizar investigación
+- `LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION` - Nombre del lambda para identificar intención de mensajes
+- `LAMBDA_EXECUTION_ROLE` - ARN del rol de ejecución de lambdas
 
-**Feature Flags:**
-- `APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE`
+**Feature Flags (Legacy):**
+- `DELETE_AUDIO_AFTER_TRANSCRIBE` - Feature flag legacy para eliminar audio
+
+> **Nota:** Algunos secrets son legacy y pueden no ser necesarios dependiendo de tu configuración. Los secrets marcados como "legacy" son de versiones anteriores y pueden ser removidos si no se usan.
 
 #### Tiempo de Deployment
 
