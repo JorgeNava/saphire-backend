@@ -68,6 +68,10 @@ exports.handler = async (event) => {
     const filters = [];
     const eav = params.ExpressionAttributeValues;
 
+    if (qs.searchTerm) {
+      filters.push('contains(content, :searchTerm)');
+      eav[':searchTerm'] = qs.searchTerm;
+    }
     if (qs.tagSource) {
       filters.push('tagSource = :tagSource');
       eav[':tagSource'] = qs.tagSource;
