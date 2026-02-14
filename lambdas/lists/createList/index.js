@@ -26,7 +26,8 @@ exports.handler = async (event) => {
       userId,
       name,
       items = [],
-      tags
+      tags,
+      pinned = false
     } = JSON.parse(event.body);
 
     if (!userId || !name) {
@@ -58,6 +59,7 @@ exports.handler = async (event) => {
       tagIds,
       tagNames,
       tagSource: tags ? 'Manual' : null,
+      pinned: !!pinned,
       createdAt: timestamp,
       createdBy: userId,
       updatedAt: timestamp,

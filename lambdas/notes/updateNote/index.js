@@ -29,6 +29,7 @@ exports.handler = async (event) => {
       tags,           // Formato antiguo (array de strings o IDs)
       tagNames,       // Formato nuevo del frontend (array de strings)
       tagSource,
+      pinned,
       userId 
     } = body;
 
@@ -57,20 +58,41 @@ exports.handler = async (event) => {
     );
 
     const updatedAt = new Date().toISOString();
+    
+    // Construir UpdateExpression dinámicamente
+    const updateParts = [
+      'title = :t',
+      'content = :c',
+      'attachmentKeys = :a',
+      'tagIds = :g',
+      'tagNames = :tn',
+      'tagSource = :ts',
+      'updatedAt = :u',
+      'lastModifiedBy = :m'
+    ];
+    
+    const expressionAttributeValues = {
+      ':t': title,
+      ':c': content,
+      ':a': attachmentKeys,
+      ':g': tagIds,
+      ':tn': resolvedTagNames,
+      ':ts': tagSource || (tagsToProcess.length > 0 ? 'Manual' : null),
+      ':u': updatedAt,
+      ':m': userId
+    };
+    
+    // Agregar pinned si fue proporcionado
+    if (pinned !== undefined) {
+      updateParts.push('pinned = :pinned');
+      expressionAttributeValues[':pinned'] = !!pinned;
+    }
+    
     const params = {
       TableName: TABLE_NAME,
       Key: { noteId },
-      UpdateExpression: 'SET title = :t, content = :c, attachmentKeys = :a, tagIds = :g, tagNames = :tn, tagSource = :ts, updatedAt = :u, lastModifiedBy = :m',
-      ExpressionAttributeValues: {
-        ':t': title,
-        ':c': content,
-        ':a': attachmentKeys,
-        ':g': tagIds,
-        ':tn': resolvedTagNames,
-        ':ts': tagSource || (tagsToProcess.length > 0 ? 'Manual' : null),
-        ':u': updatedAt,
-        ':m': userId
-      },
+      UpdateExpression: 'SET ' + updateParts.join(', '),
+      ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: 'ALL_NEW'
     };
 

@@ -1,0 +1,10 @@
+{
+  "name": "create-note-from-list",
+  "version": "1.0.0",
+  "description": "Lambda para convertir una lista en una nota",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "uuid": "^11.0.3"
+  }
+}

@@ -2,10 +2,11 @@
  * Lambda — getLists
  * GET /lists
  * Permite filtrar por userId (requerido) y opcionales:
- * name (contiene), tagIds (al menos uno), tagSource,
+ * name o searchTerm (contiene), tagIds (al menos uno), tagSource,
  * createdAt (>=), updatedAt (>=), createdBy, lastModifiedBy.
  *
- * Ejemplo:
+ * Ejemplos:
+ * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/lists?userId=user123&searchTerm=compras"
  * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/lists?userId=user123&tagIds=tag1,tag2"
  */
 
@@ -39,10 +40,12 @@ exports.handler = async (event) => {
     const eav = params.ExpressionAttributeValues;
     const ean = {}; // ExpressionAttributeNames si hacen falta
 
-    if (qs.name) {
+    // Búsqueda por nombre (acepta 'name' o 'searchTerm' como alias)
+    const searchName = qs.name || qs.searchTerm;
+    if (searchName) {
       filters.push('contains(#n, :name)');
       ean['#n'] = 'name';
-      eav[':name'] = qs.name;
+      eav[':name'] = searchName;
     }
     if (qs.tagSource) {
       filters.push('tagSource = :tagSource');
@@ -86,9 +89,20 @@ exports.handler = async (event) => {
 
     // Ejecutar query
     const result = await docClient.query(params).promise();
+    
+    // Ordenar resultados: pinned primero, luego por createdAt descendente
+    const sortedItems = (result.Items || []).sort((a, b) => {
+      // Primero ordenar por pinned (true antes que false)
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      
+      // Si ambos tienen el mismo estado de pinned, ordenar por createdAt (más reciente primero)
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
     return {
       statusCode: 200,
-      body: JSON.stringify(result.Items || [])
+      body: JSON.stringify(sortedItems)
     };
   } catch (err) {
     console.error('getLists error:', err);

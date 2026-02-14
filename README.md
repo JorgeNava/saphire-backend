@@ -2,14 +2,16 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Versión actual del backend:*** 0.0.7
+***Versión actual del backend:*** 0.0.8
 
-**🎉 Novedades v0.0.7:**
-- ✨ Nuevo endpoint: Agregar pensamiento a nota existente (`POST /notes/{noteId}/add-thought`)
-- ✨ Nuevo endpoint: Refresh de listas desde etiquetas (`POST /lists/{listId}/refresh-from-tags`)
-- 🔒 Validación de nombres únicos para etiquetas (case-insensitive)
-- 📝 Scripts de deployment automatizados
-- 📚 Documentación completa de testing y deployment
+**🎉 Novedades v0.0.8:**
+- 🐛 **Fix crítico:** Tags ahora se actualizan correctamente en pensamientos (`PUT /thoughts/{thoughtId}`)
+- ✨ **Nuevo endpoint:** Convertir listas en notas (`POST /notes/from-list`)
+- ⭐ **Nueva feature:** Campo `pinned` (favoritos) en Lists y Notes
+- � **Mejora:** Búsqueda por nombre en listas con parámetro `searchTerm`
+- 📊 **Mejora:** Ordenamiento automático por favoritos en GET /lists y /notes
+- 📝 Soporte dual para tags: nombres sin resolver o IDs pre-resueltos
+- � UpdateExpression dinámico para actualizaciones parciales
 
 **Novedades v0.0.6:**
 - Fix crítico: marcar items de lista completados
@@ -50,14 +52,20 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 * **CRUD**: `/lists` con soporte completo de tags
 * **Gestión de items**: `POST /lists/{listId}/items`, `DELETE /lists/{listId}/items/{itemId}`
 * **Marcar completados**: `PUT /lists/{listId}/items/{itemId}` - Toggle estado `completed`
+* **Favoritos**: Campo `pinned` para marcar listas importantes con ordenamiento automático 🆕
+* **Búsqueda**: Parámetro `searchTerm` en GET para filtrar por nombre 🆕
 * **Tags directos**: Acepta `tagIds`, `tagNames` y `tagSource` en actualizaciones
 * **Creación desde tags**: `POST /lists/from-tags` - Crea lista automáticamente desde 1-5 etiquetas
-* **Refresh desde tags**: `POST /lists/{listId}/refresh-from-tags` - Actualiza lista con pensamientos nuevos 🆕
+* **Refresh desde tags**: `POST /lists/{listId}/refresh-from-tags` - Actualiza lista con pensamientos nuevos
+* **Conversión a nota**: `POST /notes/from-list` - Convierte lista en nota con formato bullets 🆕
 
 ### 📝 Notas
 * **CRUD**: `/notes` con attachments en S3
+* **Favoritos**: Campo `pinned` para marcar notas importantes con ordenamiento automático 🆕
 * **Tags**: Soporte completo con TagService (acepta `tags` y `tagNames`)
-* **Agregar pensamiento**: `POST /notes/{noteId}/add-thought` - Agrega pensamiento como bullet point 🆕
+* **Conversión desde lista**: `POST /notes/from-list` - Crea nota desde lista con formato bullets 🆕
+* **Conversión desde pensamiento**: `POST /notes/from-thought` - Crea nota desde pensamiento individual
+* **Agregar pensamiento**: `POST /notes/{noteId}/add-thought` - Agrega pensamiento como bullet point
 * **Actualización de tags**: `PUT /notes/{noteId}` crea tags automáticamente si no existen
 
 ### 👤 Usuarios

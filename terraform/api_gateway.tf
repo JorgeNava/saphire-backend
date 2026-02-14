@@ -63,6 +63,7 @@ locals {
     restoreNote       = { method = "POST"   , path = "/notes/{noteId}/restore" }
     createNoteFromMessage = { method = "POST", path = "/notes/from-message" }
     createNoteFromThought = { method = "POST", path = "/notes/from-thought" }
+    createNoteFromList = { method = "POST", path = "/notes/from-list" }
     addThoughtToNote  = { method = "POST", path = "/notes/{noteId}/add-thought" }
     createTag         = { method = "POST"   , path = "/tags"              }
     getTags           = { method = "GET"    , path = "/tags"              }

@@ -30,14 +30,15 @@ exports.handler = async (event) => {
       tagIds: inputTagIds,
       tagNames: inputTagNames,
       tagSource: inputTagSource,
+      pinned,
       userId
     } = body;
 
-    if (!listId || !name) {
+    if (!listId) {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          error: "Los campos listId y name son requeridos."
+          error: "El campo listId es requerido."
         })
       };
     }
@@ -72,28 +73,48 @@ exports.handler = async (event) => {
         : { itemId: i.itemId || uuidv4(), content: i.content }
     );
 
+    // Construir UpdateExpression dinámicamente
+    const updateParts = [];
+    const expressionAttributeNames = {
+      '#n': 'name',
+      '#it': 'items'
+    };
+    const expressionAttributeValues = {
+      ':u': updatedAt,
+      ':lm': userId || 'Manual'
+    };
+
+    // Campos opcionales
+    if (name !== undefined) {
+      updateParts.push('#n = :name');
+      expressionAttributeValues[':name'] = name;
+    }
+    if (items !== undefined) {
+      updateParts.push('#it = :items');
+      expressionAttributeValues[':items'] = structuredItems;
+    }
+    updateParts.push('tagIds = :tagIds');
+    expressionAttributeValues[':tagIds'] = tagIds;
+    updateParts.push('tagNames = :tagNames');
+    expressionAttributeValues[':tagNames'] = tagNames;
+    updateParts.push('tagSource = :ts');
+    expressionAttributeValues[':ts'] = tagSource;
+    
+    // Agregar pinned si fue proporcionado
+    if (pinned !== undefined) {
+      updateParts.push('pinned = :pinned');
+      expressionAttributeValues[':pinned'] = !!pinned; // Convertir a boolean
+    }
+    
+    updateParts.push('updatedAt = :u');
+    updateParts.push('lastModifiedBy = :lm');
+
     const params = {
       TableName: TABLE_NAME,
       Key: { listId },
-
-      // Usamos alias porque "items" es palabra reservada en DynamoDB UpdateExpression
-      UpdateExpression: 'SET #n = :name, #it = :items, tagIds = :tagIds, tagNames = :tagNames, tagSource = :ts, updatedAt = :u, lastModifiedBy = :lm',
-
-      ExpressionAttributeNames: {
-        '#n': 'name',
-        '#it': 'items'
-      },
-
-      ExpressionAttributeValues: {
-        ':name': name,
-        ':items': structuredItems,
-        ':tagIds': tagIds,
-        ':tagNames': tagNames,
-        ':ts': tagSource,
-        ':u': updatedAt,
-        ':lm': userId || 'Manual'
-      },
-
+      UpdateExpression: 'SET ' + updateParts.join(', '),
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: 'ALL_NEW'
     };
 

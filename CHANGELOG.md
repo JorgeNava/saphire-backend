@@ -4,7 +4,132 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
-## [0.0.8] - 2025-11-10
+## [0.0.8] - 2025-11-16
+
+### 🐛 Corregido
+
+#### PUT /thoughts/{thoughtId} - Tags no se actualizaban
+- **Problema:** Tags no se guardaban al actualizar pensamientos
+- **Causa:** `TagService` recibía `'Manual'` en lugar de `userId`, causando fallo silencioso
+- **Solución:**
+  - Ahora requiere `userId` cuando se envían `tags` sin resolver
+  - Soporta tanto tags sin resolver como tags pre-resueltos
+  - Añadidos logs de debug para troubleshooting
+- **Formatos aceptados:**
+  - `{ userId, content, tags: ["string"] }` (recomendado)
+  - `{ content, tagIds: ["uuid"], tagNames: ["string"], tagSource: "Manual" }`
+
+#### PUT /lists/{listId} - Validación mejorada
+- Cambio de validación estricta a flexible (solo `listId` es requerido)
+- UpdateExpression dinámico para soportar actualizaciones parciales
+- Soporte completo para campo `pinned`
+
+### 🎉 Agregado
+
+#### POST /notes/from-list - Convertir Listas en Notas
+- **Nuevo endpoint:** Convierte listas en notas preservando contexto
+- **Funcionalidad:**
+  - Formatea items con bullets (`• Item 1\n• Item 2`)
+  - Combina tags de lista + tags adicionales
+  - Opción de eliminar lista original (`preserveList: false`)
+  - Metadata de origen completa
+- **Request:**
+  ```json
+  {
+    "userId": "user123",
+    "listId": "uuid-lista",
+    "title": "Mi Nota",
+    "preserveList": true,
+    "formatAsBullets": true,
+    "tags": ["Tag1"]
+  }
+  ```
+- **Response incluye:**
+  - `sourceType: "list"`
+  - `sourceListId`
+  - `createdFromList: true`
+  - `listItemCount`
+  - `listDeleted` (boolean)
+
+#### Campo `pinned` en Lists y Notes
+- **Nuevo campo:** Marca recursos como favoritos/importantes
+- **Tipo:** Boolean (default: `false`)
+- **Disponible en:**
+  - `POST /lists` - Create con pinned
+  - `PUT /lists/{listId}` - Update pinned
+  - `GET /lists` - Ordenamiento automático
+  - `POST /notes` - Create con pinned
+  - `PUT /notes/{noteId}` - Update pinned
+  - `GET /notes` - Ordenamiento automático
+- **Ordenamiento automático:**
+  1. Items con `pinned: true` primero
+  2. Luego items con `pinned: false`
+  3. Dentro de cada grupo: por `createdAt DESC`
+
+#### GET /lists - Parámetro searchTerm
+- Agregado alias `searchTerm` para búsqueda (equivalente a `name`)
+- Búsqueda con `contains()` en nombre de lista
+- Ejemplo: `GET /lists?userId=user123&searchTerm=compras`
+
+### 🔧 Modificado
+
+#### Lambdas con UpdateExpression Dinámico
+- **updateList** - Soporte para actualizaciones parciales
+- **updateNote** - Soporte para campo pinned opcional
+
+#### Ordenamiento Mejorado
+- **getLists** - Ordena por pinned primero, luego por fecha
+- **getNotes** - Ordena por pinned primero, luego por fecha
+
+### 📝 Documentación
+
+#### Nuevos Archivos
+- `BACKEND_UPDATES_v0.0.8.md` - Documentación completa de cambios
+  - Explicación detallada de cada fix
+  - Ejemplos de request/response
+  - Guía de testing
+  - Checklist para mobile
+  - Schema actualizado
+- `lambdas/notes/createNoteFromList/` - Nuevo lambda documentado
+
+### 🔄 Lambdas Afectados
+
+#### Nuevos
+- `Zafira-createNoteFromList` - Convertir lista a nota
+
+#### Actualizados
+- `Zafira-updateThought` - Fix tags + logs + soporte dual format
+- `Zafira-getLists` - searchTerm + ordenamiento pinned
+- `Zafira-createList` - Campo pinned
+- `Zafira-updateList` - Campo pinned + UpdateExpression dinámico
+- `Zafira-createNote` - Campo pinned
+- `Zafira-updateNote` - Campo pinned + UpdateExpression dinámico
+- `Zafira-getNotes` - Ordenamiento pinned
+
+#### Configuración Terraform
+- `api_gateway.tf` - Ruta createNoteFromList
+- `lambdas.tf` - Lambda createNoteFromList + tag_service_users
+
+### 📊 Métricas
+
+- **Issues Críticos Resueltos:** 3/3 (100%)
+- **Nuevas Features:** 2/2 (100%)
+- **Nuevos Endpoints:** 1
+- **Lambdas Creados:** 1
+- **Lambdas Actualizados:** 7
+- **Nuevos Campos:** 1 (pinned)
+
+### ✅ Status
+
+- ✅ Todos los issues urgentes resueltos
+- ✅ Todas las features solicitadas implementadas
+- ✅ Documentación completa generada
+- ⚠️ Pendiente deployment
+- ⚠️ Pendiente testing en producción
+
+---
+
+## [0.0.7] - 2025-11-10
 
 ### 🐛 Corregido
 

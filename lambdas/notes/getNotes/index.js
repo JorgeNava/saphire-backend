@@ -126,10 +126,20 @@ exports.handler = async (event) => {
     // Ejecutar query
     const result = await docClient.query(params).promise();
     
+    // Ordenar resultados: pinned primero, luego por createdAt descendente
+    const sortedItems = (result.Items || []).sort((a, b) => {
+      // Primero ordenar por pinned (true antes que false)
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      
+      // Si ambos tienen el mismo estado de pinned, ordenar por createdAt (más reciente primero)
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
     return {
       statusCode: 200,
       body: JSON.stringify({
-        items: result.Items || [],
+        items: sortedItems,
         count: result.Count,
         scannedCount: result.ScannedCount,
         lastKey: result.LastEvaluatedKey 
