@@ -27,7 +27,8 @@ exports.handler = async (event) => {
       name,
       items = [],
       tags,
-      pinned = false
+      pinned = false,
+      isLocked = false
     } = JSON.parse(event.body);
 
     if (!userId || !name) {
@@ -60,6 +61,7 @@ exports.handler = async (event) => {
       tagNames,
       tagSource: tags ? 'Manual' : null,
       pinned: !!pinned,
+      isLocked: !!isLocked,
       createdAt: timestamp,
       createdBy: userId,
       updatedAt: timestamp,

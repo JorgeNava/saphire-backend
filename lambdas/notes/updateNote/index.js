@@ -30,6 +30,7 @@ exports.handler = async (event) => {
       tagNames,       // Formato nuevo del frontend (array de strings)
       tagSource,
       pinned,
+      isLocked,
       userId 
     } = body;
 
@@ -86,6 +87,12 @@ exports.handler = async (event) => {
     if (pinned !== undefined) {
       updateParts.push('pinned = :pinned');
       expressionAttributeValues[':pinned'] = !!pinned;
+    }
+
+    // Agregar isLocked si fue proporcionado
+    if (isLocked !== undefined) {
+      updateParts.push('isLocked = :isLocked');
+      expressionAttributeValues[':isLocked'] = !!isLocked;
     }
     
     const params = {

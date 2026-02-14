@@ -7,17 +7,26 @@
 const AWS   = require('aws-sdk');
 
 const lambda      = new AWS.Lambda({ region: process.env.AWS_REGION });
-const docClient   = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY  = process.env.OPENAI_API_KEY_AWS_USE;
-const MSG_TABLE   = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
+const THOUGHT_LAMBDA = process.env.LAMBDA_NAME_CREATE_THOUGHT;
 
 // Mapeo de intent → Lambda a invocar
 const DISPATCH = {
-  thought:  process.env.LAMBDA_NAME_CREATE_THOUGHT,
   list:     process.env.LAMBDA_NAME_CREATE_LIST_THROUGH_AI,
   research: process.env.LAMBDA_NAME_PERFORM_RESEARCH
 };
+
+const VALID_INTENTS = new Set(['thought', 'list', 'research', 'order']);
+
+function normalizeIntent(rawIntent) {
+  const normalized = String(rawIntent || '').trim().toLowerCase();
+  return VALID_INTENTS.has(normalized) ? normalized : 'thought';
+}
+
+function inferMessageType(intent) {
+  return intent === 'thought' ? 'thought' : 'order';
+}
 
 exports.handler = async (event) => {
   try {
@@ -25,7 +34,18 @@ exports.handler = async (event) => {
       ? JSON.parse(event)
       : event || {};
 
-    const { sender, content, tagIds, tagNames, tagSource } = payload;
+    const {
+      sender,
+      content,
+      tagIds,
+      tagNames,
+      tagSource,
+      messageId,
+      conversationId,
+      timestamp,
+      inputType
+    } = payload;
+
     if (!sender || !content) {
       return { statusCode: 400, body: JSON.stringify({ error: 'sender y content son requeridos.' }) };
     }
@@ -34,13 +54,19 @@ exports.handler = async (event) => {
 
     // 1) Determinar intent con OpenAI
     const systemPrompt = `
-Eres un detector de intención de mensajes. Debes devolver exactamente uno de estos tokens:
-  • thought   → registra datos sobre la vida del usuario como un segundo cerebro.
-  • list      → mensajes que crean o modifican listas de tareas o compras.
-  • research  → consultas que requieren investigación y compilación de información.
+Eres un detector de intención de mensajes. Clasifica el mensaje y responde SOLO JSON válido.
+
+Intentos válidos:
+  • thought   → pensamiento personal que debe guardarse.
+  • list      → petición para crear/actualizar listas.
+  • research  → petición de investigación o reporte.
+  • order     → orden/comando accionable que no cae en list o research.
+
 Mensaje: "${content}"
-Respuesta SÓLO con uno de los tokens: thought, list o research.
+Responde en este formato exacto:
+{"intent":"thought|list|research|order"}
 `;
+
     const aiRes = await fetch(OPENAI_URL, {
       method:  'POST',
       headers: {
@@ -50,51 +76,82 @@ Respuesta SÓLO con uno de los tokens: thought, list o research.
       body: JSON.stringify({
         model:    'gpt-4-turbo',
         messages: [{ role: 'system', content: systemPrompt }],
-        max_tokens: 1
+        max_tokens: 40,
+        temperature: 0
       })
     });
-    const aiData = await aiRes.json();
-    let token   = (aiData.choices?.[0]?.message?.content || 'thought').trim().toLowerCase();
-    if (!['thought','list','research'].includes(token)) token = 'thought';
 
-    // 2) Despachar la Lambda correspondiente de forma asíncrona
-    const targetFn = DISPATCH[token];
+    const aiData = await aiRes.json();
+    const aiContent = aiData.choices?.[0]?.message?.content || '';
+    let intent = 'thought';
+
+    try {
+      const jsonMatch = String(aiContent).match(/\{[\s\S]*\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+      intent = normalizeIntent(parsed.intent);
+    } catch (parseErr) {
+      console.warn('messageIntentIdentification - Respuesta IA no parseable, usando thought:', aiContent);
+      intent = 'thought';
+    }
+
+    const messageType = inferMessageType(intent);
+
+    // 2) Solo crear thought si el intent identificado es 'thought'
+    if (intent === 'thought' && THOUGHT_LAMBDA) {
+      const thoughtPayload = {
+        userId: sender,
+        content,
+        createdBy: 'IA',
+        sourceMessageId: messageId,
+        sourceConversationId: conversationId,
+        sourceTimestamp: timestamp,
+        sourceInputType: inputType,
+        sourceIntent: intent
+      };
+
+      if (tagIds && tagIds.length > 0) {
+        thoughtPayload.tags = tagNames;
+        thoughtPayload.tagIds = tagIds;
+        thoughtPayload.tagNames = tagNames;
+        thoughtPayload.tagSource = tagSource;
+      }
+
+      await lambda.invoke({
+        FunctionName: THOUGHT_LAMBDA,
+        InvocationType: 'Event',
+        Payload: JSON.stringify(thoughtPayload)
+      }).promise();
+    }
+
+    // 3) Si el intent es accionable, despachar la Lambda específica
+    const targetFn = DISPATCH[intent];
     if (targetFn) {
-      const lambdaPayload = {
+      const actionPayload = {
         userId: sender,
         content,
         createdBy: 'IA'
       };
-      
-      // Agregar tags si existen
-      if (tagIds && tagIds.length > 0) {
-        lambdaPayload.tags = tagNames; // El TagService espera tagNames
-        lambdaPayload.tagIds = tagIds;
-        lambdaPayload.tagNames = tagNames;
-        lambdaPayload.tagSource = tagSource;
-      }
-      
-      console.log('messageIntentIdentification - Invocando lambda:', targetFn, 'con payload:', lambdaPayload);
-      
+
       await lambda.invoke({
-        FunctionName:   targetFn,
+        FunctionName: targetFn,
         InvocationType: 'Event',
-        Payload:        JSON.stringify(lambdaPayload)
+        // createListThroughAI / performResearch esperan formato API Gateway
+        Payload: JSON.stringify({ body: JSON.stringify(actionPayload) })
       }).promise();
     }
 
-    // 3) Devolver el intent
+    // 4) Devolver clasificación al caller
     return {
       statusCode: 200,
-      body:       JSON.stringify({ intent: token })
+      body: JSON.stringify({ intent, messageType })
     };
 
   } catch (err) {
     console.error('messageIntentIdentification error:', err);
-    // En caso de fallo, devolvemos "thought" por defecto
+    // En caso de fallo, devolvemos clasificación por defecto
     return {
       statusCode: 200,
-      body:       JSON.stringify({ intent: 'thought' })
+      body: JSON.stringify({ intent: 'thought', messageType: 'thought' })
     };
   }
 };

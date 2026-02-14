@@ -22,7 +22,15 @@ const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
 
 exports.handler = async (event) => {
   try {
-    const { userId, title, content, attachmentKeys = [], tags, pinned = false } = JSON.parse(event.body);
+    const {
+      userId,
+      title,
+      content,
+      attachmentKeys = [],
+      tags,
+      pinned = false,
+      isLocked = false
+    } = JSON.parse(event.body);
     if (!userId || !title || !content) {
       return {
         statusCode: 400,
@@ -45,6 +53,7 @@ exports.handler = async (event) => {
       tagNames,
       tagSource: tags ? 'Manual' : null,
       pinned: !!pinned,
+      isLocked: !!isLocked,
       createdAt: timestamp,
       updatedAt: timestamp,
       createdBy: userId,

@@ -20,9 +20,11 @@ const { TagService } = require('/opt/nodejs/tagService');
 
 const s3       = new S3Client({ region: process.env.AWS_REGION });
 const docClient= new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const lambda   = new AWS.Lambda({ region: process.env.AWS_REGION });
 const tagService = new TagService();
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const TAGS_TABLE= process.env.AWS_DYNAMODB_TABLE_TAGS;
+const INTENT_LAMBDA = process.env.LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION;
 const OPENAI_API_TRANSCRIPTION_ENDPOINT = `${process.env.OPENAI_API_BASE_URL}/v1/audio/transcriptions`;
 const OPENAI_API_CHAT_ENDPOINT = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 
@@ -161,7 +163,8 @@ exports.handler = async (event) => {
       tagSource,
       usedAI,
       createdBy,
-      lastModifiedBy: createdBy
+      lastModifiedBy: createdBy,
+      intent: null
     };
 
     await docClient.put({
@@ -169,7 +172,44 @@ exports.handler = async (event) => {
       Item: item
     }).promise();
 
-    // 6) opcionalmente borrar el audio
+    // 6) Si no es mensaje de IA, clasificar intent y disparar automatizaciones
+    if (sender.toLowerCase() !== 'ia' && INTENT_LAMBDA) {
+      const resp = await lambda.invoke({
+        FunctionName: INTENT_LAMBDA,
+        InvocationType: 'RequestResponse',
+        Payload: JSON.stringify({
+          sender,
+          content: text,
+          messageId,
+          conversationId,
+          timestamp,
+          inputType: 'audio',
+          tagIds: finalTagIds,
+          tagNames: finalTagNames,
+          tagSource
+        })
+      }).promise();
+
+      const payload = JSON.parse(resp.Payload || '{}');
+      const body = JSON.parse(payload.body || '{}');
+      const intent = body.intent || 'thought';
+
+      const now = new Date().toISOString();
+      await docClient.update({
+        TableName: MSG_TABLE,
+        Key: { conversationId, timestamp },
+        UpdateExpression: 'SET intent = :i, updatedAt = :u',
+        ExpressionAttributeValues: {
+          ':i': intent,
+          ':u': now
+        }
+      }).promise();
+
+      item.intent = intent;
+      item.updatedAt = now;
+    }
+
+    // 7) opcionalmente borrar el audio
     if (process.env.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE === 'true') {
       await s3.send(
         new DeleteObjectCommand({ Bucket: process.env.AWS_S3_MESSAGE_ATTACHMENTS_BUCKET, Key: s3Key })

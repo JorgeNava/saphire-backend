@@ -25,12 +25,13 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body);
     const {
       name,
-      items = [],
+      items,
       tags,
       tagIds: inputTagIds,
       tagNames: inputTagNames,
       tagSource: inputTagSource,
       pinned,
+      isLocked,
       userId
     } = body;
 
@@ -43,35 +44,36 @@ exports.handler = async (event) => {
       };
     }
 
-    // Resolver tags: si vienen tagIds/tagNames directamente, usarlos; sino usar TagService
+    // Resolver tags solo si vienen explícitamente para evitar borrar tags en updates parciales
     let tagIds, tagNames, tagSource;
+    let shouldUpdateTags = false;
     
     if (inputTagIds && inputTagNames) {
       // Usuario envió tagIds y tagNames directamente
       tagIds = inputTagIds;
       tagNames = inputTagNames;
       tagSource = inputTagSource || 'Manual';
+      shouldUpdateTags = true;
     } else if (tags) {
       // Usuario envió tags para resolver con TagService
       const resolved = await tagService.parseAndResolveTags(tags, userId || 'Manual');
       tagIds = resolved.tagIds;
       tagNames = resolved.tagNames;
       tagSource = 'Manual';
-    } else {
-      // Sin tags
-      tagIds = [];
-      tagNames = [];
-      tagSource = null;
+      shouldUpdateTags = true;
     }
 
     const updatedAt = new Date().toISOString();
 
-    // Estandarizamos los items: si vienen como strings, les asignamos un itemId nuevo
-    const structuredItems = items.map(i =>
-      typeof i === 'string'
-        ? { itemId: uuidv4(), content: i }
-        : { itemId: i.itemId || uuidv4(), content: i.content }
-    );
+    let structuredItems;
+    if (items !== undefined) {
+      // Estandarizamos los items: si vienen como strings, les asignamos un itemId nuevo
+      structuredItems = items.map(i =>
+        typeof i === 'string'
+          ? { itemId: uuidv4(), content: i }
+          : { itemId: i.itemId || uuidv4(), content: i.content }
+      );
+    }
 
     // Construir UpdateExpression dinámicamente
     const updateParts = [];
@@ -93,17 +95,25 @@ exports.handler = async (event) => {
       updateParts.push('#it = :items');
       expressionAttributeValues[':items'] = structuredItems;
     }
-    updateParts.push('tagIds = :tagIds');
-    expressionAttributeValues[':tagIds'] = tagIds;
-    updateParts.push('tagNames = :tagNames');
-    expressionAttributeValues[':tagNames'] = tagNames;
-    updateParts.push('tagSource = :ts');
-    expressionAttributeValues[':ts'] = tagSource;
+    if (shouldUpdateTags) {
+      updateParts.push('tagIds = :tagIds');
+      expressionAttributeValues[':tagIds'] = tagIds;
+      updateParts.push('tagNames = :tagNames');
+      expressionAttributeValues[':tagNames'] = tagNames;
+      updateParts.push('tagSource = :ts');
+      expressionAttributeValues[':ts'] = tagSource;
+    }
     
     // Agregar pinned si fue proporcionado
     if (pinned !== undefined) {
       updateParts.push('pinned = :pinned');
       expressionAttributeValues[':pinned'] = !!pinned; // Convertir a boolean
+    }
+
+    // Agregar isLocked si fue proporcionado
+    if (isLocked !== undefined) {
+      updateParts.push('isLocked = :isLocked');
+      expressionAttributeValues[':isLocked'] = !!isLocked;
     }
     
     updateParts.push('updatedAt = :u');

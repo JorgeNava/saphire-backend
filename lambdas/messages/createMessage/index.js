@@ -73,8 +73,10 @@ exports.handler = async (event) => {
           Payload:        JSON.stringify({ 
             sender, 
             content,
+            messageId,
             conversationId,
             timestamp,
+            inputType: baseItem.inputType,
             tagIds,
             tagNames,
             tagSource: baseItem.tagSource

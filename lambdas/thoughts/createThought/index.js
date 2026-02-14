@@ -10,6 +10,7 @@ const { TagService } = require('/opt/nodejs/tagService');
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const tagService = new TagService();
 const THOUGHTS_TBL = process.env.AWS_DYNAMODB_TABLE_THOUGHTS;
+const THOUGHTS_GSI_USER = 'GSI-userThoughts';
 
 exports.handler = async (event) => {
   try {
@@ -20,12 +21,49 @@ exports.handler = async (event) => {
     } else {
       payload = event;
     }
-    const { userId, content, tags, tagIds: existingTagIds, tagNames: existingTagNames, tagSource, createdBy } = payload;
+    const {
+      userId,
+      content,
+      tags,
+      tagIds: existingTagIds,
+      tagNames: existingTagNames,
+      tagSource,
+      createdBy,
+      sourceMessageId,
+      sourceConversationId,
+      sourceTimestamp,
+      sourceInputType,
+      sourceIntent
+    } = payload;
+
     if (!userId || !content) {
       return { 
         statusCode: 400, 
         body: JSON.stringify({ error: 'userId y content son requeridos.' }) 
       };
+    }
+
+    // Evitar duplicados cuando viene referencia al mensaje origen.
+    if (sourceMessageId) {
+      const existingThought = await docClient.query({
+        TableName: THOUGHTS_TBL,
+        IndexName: THOUGHTS_GSI_USER,
+        KeyConditionExpression: 'userId = :u',
+        FilterExpression: 'sourceMessageId = :sm',
+        ExpressionAttributeValues: {
+          ':u': userId,
+          ':sm': sourceMessageId
+        },
+        Limit: 1,
+        ScanIndexForward: false
+      }).promise();
+
+      if (existingThought.Items && existingThought.Items.length > 0) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify(existingThought.Items[0])
+        };
+      }
     }
 
     // Si ya vienen tagIds y tagNames resueltos (desde messageIntentIdentification), usarlos
@@ -55,7 +93,12 @@ exports.handler = async (event) => {
       createdAt: now,
       updatedAt: now,
       createdBy: createdBy || 'Manual',
-      lastModifiedBy: createdBy || 'Manual'
+      lastModifiedBy: createdBy || 'Manual',
+      sourceMessageId: sourceMessageId || null,
+      sourceConversationId: sourceConversationId || null,
+      sourceTimestamp: sourceTimestamp || null,
+      sourceInputType: sourceInputType || null,
+      sourceIntent: sourceIntent || null
     };
     
     await docClient.put({ TableName: THOUGHTS_TBL, Item: item }).promise();
