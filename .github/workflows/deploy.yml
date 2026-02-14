@@ -36,18 +36,16 @@ jobs:
       - name: Build Lambda Layer TagService
         run: |
           echo "📦 Building Lambda Layer: TagService"
-          LAYER_DIR="lambdas/layers/tagService"
-          NODEJS_DIR="$LAYER_DIR/nodejs"
           mkdir -p build
           
-          # Install dependencies
-          cd "$NODEJS_DIR"
+          # Install dependencies in the nodejs directory
+          cd lambdas/layers/tagService/nodejs
           npm install --production
-          cd ../../..
+          cd ../../../..
           
-          # Create ZIP
-          cd "$LAYER_DIR"
-          zip -r "../../../build/${TABLE_PREFIX}-layer-tagService.zip" nodejs/ \
+          # Create ZIP from the layer directory
+          cd lambdas/layers/tagService
+          zip -r ../../../build/${TABLE_PREFIX}-layer-tagService.zip nodejs/ \
             -x "nodejs/package-lock.json" \
             -x "nodejs/.DS_Store" \
             -x "nodejs/node_modules/.bin/*" \
@@ -55,6 +53,7 @@ jobs:
           cd ../../..
           
           echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-tagService.zip"
+          ls -lh build/${TABLE_PREFIX}-layer-tagService.zip
 
       # 5) Build & Zip de cada Lambda
       - name: Build & Zip Lambdas
