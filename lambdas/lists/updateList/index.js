@@ -77,10 +77,7 @@ exports.handler = async (event) => {
 
     // Construir UpdateExpression dinámicamente
     const updateParts = [];
-    const expressionAttributeNames = {
-      '#n': 'name',
-      '#it': 'items'
-    };
+    const expressionAttributeNames = {};
     const expressionAttributeValues = {
       ':u': updatedAt,
       ':lm': userId || 'Manual'
@@ -89,10 +86,12 @@ exports.handler = async (event) => {
     // Campos opcionales
     if (name !== undefined) {
       updateParts.push('#n = :name');
+      expressionAttributeNames['#n'] = 'name';
       expressionAttributeValues[':name'] = name;
     }
     if (items !== undefined) {
       updateParts.push('#it = :items');
+      expressionAttributeNames['#it'] = 'items';
       expressionAttributeValues[':items'] = structuredItems;
     }
     if (shouldUpdateTags) {
@@ -123,10 +122,14 @@ exports.handler = async (event) => {
       TableName: TABLE_NAME,
       Key: { listId },
       UpdateExpression: 'SET ' + updateParts.join(', '),
-      ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: 'ALL_NEW'
     };
+
+    // Solo incluir ExpressionAttributeNames si hay alguno (DynamoDB rechaza objeto vacío)
+    if (Object.keys(expressionAttributeNames).length > 0) {
+      params.ExpressionAttributeNames = expressionAttributeNames;
+    }
 
     const result = await docClient.update(params).promise();
 
