@@ -1,0 +1,7 @@
+{
+  "name": "drive-oauth-status",
+  "version": "1.0.0",
+  "description": "Verifica si el usuario tiene Google Drive conectado",
+  "main": "index.js",
+  "dependencies": {}
+}

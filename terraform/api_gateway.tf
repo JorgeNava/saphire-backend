@@ -78,6 +78,11 @@ locals {
     performResearch   = { method = "POST"   , path = "/actions/perform-research" }
     getUser           = { method = "GET"    , path = "/users/{userId}"       }
     updateUser        = { method = "PUT"    , path = "/users/{userId}"       }
+    driveOAuthStart   = { method = "GET"    , path = "/drive/oauth/start"    }
+    driveOAuthCallback = { method = "GET"   , path = "/drive/oauth/callback" }
+    driveOAuthStatus  = { method = "GET"    , path = "/drive/oauth/status"   }
+    driveOAuthRevoke  = { method = "DELETE" , path = "/drive/oauth"          }
+    driveQueryHandler = { method = "POST"   , path = "/drive/query"          }
   }
 }
 

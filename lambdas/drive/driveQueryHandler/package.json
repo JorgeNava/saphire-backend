@@ -1,0 +1,7 @@
+{
+  "name": "drive-query-handler",
+  "version": "1.0.0",
+  "description": "Maneja consultas sobre archivos de Google Drive usando RAG con OpenAI",
+  "main": "index.js",
+  "dependencies": {}
+}

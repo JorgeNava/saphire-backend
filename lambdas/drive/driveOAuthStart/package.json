@@ -1,0 +1,7 @@
+{
+  "name": "drive-oauth-start",
+  "version": "1.0.0",
+  "description": "Inicia el flujo OAuth2 con Google Drive",
+  "main": "index.js",
+  "dependencies": {}
+}

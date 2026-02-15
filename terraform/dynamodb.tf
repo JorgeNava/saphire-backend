@@ -229,3 +229,26 @@ resource "aws_dynamodb_table" "actions_log" {
     projection_type = "ALL"
   }
 }
+
+################################################################################
+# 8. UserIntegrations (OAuth tokens for Google Drive, etc.)
+################################################################################
+resource "aws_dynamodb_table" "user_integrations" {
+  name         = "${local.prefix}-UserIntegrations"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "userId"
+  range_key    = "integrationId"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+  attribute {
+    name = "integrationId"
+    type = "S"
+  }
+
+  tags = {
+    Project = "Zafira"
+  }
+}

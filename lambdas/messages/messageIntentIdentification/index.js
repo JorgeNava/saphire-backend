@@ -13,11 +13,12 @@ const THOUGHT_LAMBDA = process.env.LAMBDA_NAME_CREATE_THOUGHT;
 
 // Mapeo de intent → Lambda a invocar
 const DISPATCH = {
-  list:     process.env.LAMBDA_NAME_CREATE_LIST_THROUGH_AI,
-  research: process.env.LAMBDA_NAME_PERFORM_RESEARCH
+  list:        process.env.LAMBDA_NAME_CREATE_LIST_THROUGH_AI,
+  research:    process.env.LAMBDA_NAME_PERFORM_RESEARCH,
+  drive_query: process.env.LAMBDA_NAME_DRIVE_QUERY_HANDLER
 };
 
-const VALID_INTENTS = new Set(['thought', 'list', 'research', 'order']);
+const VALID_INTENTS = new Set(['thought', 'list', 'research', 'order', 'drive_query']);
 
 function normalizeIntent(rawIntent) {
   const normalized = String(rawIntent || '').trim().toLowerCase();
@@ -57,14 +58,15 @@ exports.handler = async (event) => {
 Eres un detector de intención de mensajes. Clasifica el mensaje y responde SOLO JSON válido.
 
 Intentos válidos:
-  • thought   → pensamiento personal que debe guardarse.
-  • list      → petición para crear/actualizar listas.
-  • research  → petición de investigación o reporte.
-  • order     → orden/comando accionable que no cae en list o research.
+  • thought     → pensamiento personal que debe guardarse.
+  • list        → petición para crear/actualizar listas.
+  • research    → petición de investigación o reporte.
+  • drive_query → consulta sobre archivos personales del usuario en Google Drive (libros, resúmenes, documentos guardados, carpetas, "mis archivos", "lo que tengo guardado").
+  • order       → orden/comando accionable que no cae en las categorías anteriores.
 
 Mensaje: "${content}"
 Responde en este formato exacto:
-{"intent":"thought|list|research|order"}
+{"intent":"thought|list|research|drive_query|order"}
 `;
 
     const aiRes = await fetch(OPENAI_URL, {

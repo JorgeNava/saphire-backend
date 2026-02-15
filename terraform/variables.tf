@@ -104,3 +104,37 @@ variable "app_feature_flag_delete_audio_after_transcribe" {
   type        = bool
   default     = true
 }
+
+# ——————————————
+# Google Drive OAuth2 Integration
+# ——————————————
+variable "google_oauth_client_id" {
+  description = "Google OAuth2 Client ID"
+  type        = string
+  default     = ""
+}
+variable "google_oauth_client_secret" {
+  description = "Google OAuth2 Client Secret"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+variable "google_drive_books_folder_id" {
+  description = "Google Drive folder ID for Libros"
+  type        = string
+  default     = ""
+}
+variable "app_deep_link_scheme" {
+  description = "Deep link scheme for the mobile app"
+  type        = string
+  default     = "saphiremobile"
+}
+variable "aws_dynamodb_table_user_integrations" {
+  description = "Nombre de la tabla UserIntegrations en DynamoDB"
+  type        = string
+}
+variable "lambda_name_drive_query_handler" {
+  description = "Nombre de la Lambda para consultas de Google Drive"
+  type        = string
+  default     = "driveQueryHandler"
+}

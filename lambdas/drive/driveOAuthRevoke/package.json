@@ -1,0 +1,7 @@
+{
+  "name": "drive-oauth-revoke",
+  "version": "1.0.0",
+  "description": "Desconecta Google Drive del usuario",
+  "main": "index.js",
+  "dependencies": {}
+}
