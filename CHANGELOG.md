@@ -4,6 +4,114 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
+## [0.0.9] - 2026-02-14
+
+### 🎉 Agregado
+
+#### Integración con Google Drive OAuth2
+- **Nueva funcionalidad:** Integración completa con Google Drive para consultar archivos personales del usuario
+- **Flujo OAuth2:** Autenticación segura con Google Drive API
+- **Endpoints de OAuth:**
+  - `POST /drive/oauth/start` - Inicia flujo OAuth2 y retorna URL de autorización
+  - `POST /drive/oauth/callback` - Procesa callback de Google y guarda tokens
+  - `GET /drive/oauth/status` - Verifica estado de autenticación del usuario
+  - `DELETE /drive/oauth` - Revoca tokens y elimina integración
+- **Endpoint de Consulta:**
+  - `POST /drive/query` - Consulta archivos en Google Drive del usuario
+  - Búsqueda inteligente en carpeta de Libros configurada
+  - Retorna archivos con metadata (nombre, tipo, tamaño, fecha modificación)
+  - Soporta filtrado por tipo de archivo y búsqueda por nombre
+
+#### Lambda Layer: DriveService
+- **Nuevo Lambda Layer compartido** para integración con Google Drive
+- Funciones: Gestión de OAuth2, refresh de tokens, consultas a Drive API
+- Manejo automático de expiración y renovación de tokens
+- Integración con tabla `UserIntegrations` para almacenamiento seguro
+
+#### Nueva Tabla DynamoDB: UserIntegrations
+- **Tabla:** `Zafira-UserIntegrations`
+- **Estructura:** PK: `userId`, SK: `integrationId`
+- **Propósito:** Almacenar tokens OAuth2 y configuración de integraciones externas
+- **Campos:** `accessToken`, `refreshToken`, `expiresAt`, `scope`, `provider`
+
+#### Nuevas Lambdas
+- `driveOAuthStart` - Inicia flujo OAuth2 con Google
+- `driveOAuthCallback` - Procesa callback y guarda tokens
+- `driveOAuthStatus` - Verifica estado de autenticación
+- `driveOAuthRevoke` - Revoca acceso y elimina tokens
+- `driveQueryHandler` - Consulta archivos en Google Drive
+
+### 🔧 Modificado
+
+#### messageIntentIdentification
+- **Nuevo intent:** `drive_query` para consultas sobre archivos personales
+- Detecta cuando el usuario pregunta sobre "mis archivos", "libros guardados", "documentos en Drive", etc.
+- Despacha automáticamente a `driveQueryHandler` cuando se detecta este intent
+- Actualizado prompt de IA con descripción del nuevo intent
+
+#### Terraform
+- **api_gateway.tf** - Agregadas 5 nuevas rutas para Google Drive
+- **lambdas.tf** - Agregadas 5 nuevas funciones Lambda
+- **lambda_layers.tf** - Agregado DriveService Layer
+- **dynamodb.tf** - Agregada tabla UserIntegrations
+- **variables.tf** - Agregadas variables para Google OAuth:
+  - `google_oauth_client_id`
+  - `google_oauth_client_secret`
+  - `google_drive_books_folder_id`
+  - `app_deep_link_scheme`
+  - `lambda_name_drive_query_handler`
+  - `aws_dynamodb_table_user_integrations`
+
+#### Variables de Entorno
+- Todas las lambdas ahora tienen acceso a:
+  - `AWS_DYNAMODB_TABLE_USER_INTEGRATIONS`
+  - `GOOGLE_OAUTH_CLIENT_ID`
+  - `GOOGLE_OAUTH_CLIENT_SECRET`
+  - `GOOGLE_DRIVE_BOOKS_FOLDER_ID`
+  - `APP_DEEP_LINK_SCHEME`
+  - `LAMBDA_NAME_DRIVE_QUERY_HANDLER`
+
+### 📊 Métricas
+
+- **Nuevas Features:** 1 (Google Drive Integration)
+- **Nuevos Endpoints:** 5
+- **Nuevas Lambdas:** 5
+- **Nuevos Lambda Layers:** 1 (DriveService)
+- **Nuevas Tablas DynamoDB:** 1 (UserIntegrations)
+- **Nuevos Intents:** 1 (drive_query)
+- **Nuevas Variables Terraform:** 6
+
+### 🔒 Seguridad
+
+- OAuth2 flow completo con PKCE (Proof Key for Code Exchange)
+- Tokens almacenados de forma segura en DynamoDB
+- Refresh automático de tokens antes de expiración
+- Revocación de tokens al eliminar integración
+- Deep links seguros para callback móvil
+
+### ✨ Beneficios
+
+**Para el Usuario:**
+- Acceso a archivos personales desde la app
+- Búsqueda inteligente en biblioteca de libros
+- Autenticación segura con Google
+- Sin necesidad de compartir contraseñas
+
+**Técnicos:**
+- Arquitectura extensible para futuras integraciones (Dropbox, OneDrive, etc.)
+- Tabla UserIntegrations reutilizable para otros servicios
+- DriveService Layer compartido entre lambdas
+- Manejo robusto de expiración de tokens
+
+### 📝 Notas
+
+- Requiere configuración de Google Cloud Console (OAuth2 Client ID y Secret)
+- Requiere configuración de deep link scheme en app móvil
+- Folder ID de Libros debe configurarse en variables de Terraform
+- Todos los secrets deben agregarse a GitHub Secrets para CI/CD
+
+---
+
 ## [0.0.8] - 2025-11-16
 
 ### 🐛 Corregido

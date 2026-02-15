@@ -2,16 +2,25 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Versión actual del backend:*** 0.0.8
+***Versión actual del backend:*** 0.0.9
+
+**🎉 Novedades v0.0.9:**
+- 🔗 **Integración Google Drive:** OAuth2 completo para acceso a archivos personales
+- 📁 **Consulta de archivos:** Búsqueda inteligente en Google Drive del usuario
+- 🔐 **OAuth2 seguro:** Flujo completo con refresh automático de tokens
+- 🤖 **Nuevo intent:** `drive_query` para consultas sobre archivos guardados
+- 📊 **Nueva tabla:** `UserIntegrations` para tokens OAuth2
+- 🧩 **Nuevo Layer:** `DriveService` para integración con Google Drive
+- 🚀 **5 nuevos endpoints:** OAuth start, callback, status, revoke, query
 
 **🎉 Novedades v0.0.8:**
 - 🐛 **Fix crítico:** Tags ahora se actualizan correctamente en pensamientos (`PUT /thoughts/{thoughtId}`)
 - ✨ **Nuevo endpoint:** Convertir listas en notas (`POST /notes/from-list`)
 - ⭐ **Nueva feature:** Campo `pinned` (favoritos) en Lists y Notes
-- � **Mejora:** Búsqueda por nombre en listas con parámetro `searchTerm`
+- 🔍 **Mejora:** Búsqueda por nombre en listas con parámetro `searchTerm`
 - 📊 **Mejora:** Ordenamiento automático por favoritos en GET /lists y /notes
 - 📝 Soporte dual para tags: nombres sin resolver o IDs pre-resueltos
-- � UpdateExpression dinámico para actualizaciones parciales
+- 📝 UpdateExpression dinámico para actualizaciones parciales
 
 **Novedades v0.0.6:**
 - Fix crítico: marcar items de lista completados
@@ -72,6 +81,18 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 * **Registro**: `POST /users`
 * **Perfil**: `GET/PUT /users/{userId}` con roles e IAM
 
+### 📁 Google Drive Integration 🆕
+* **OAuth2 Flow**: Autenticación segura con Google Drive
+  - `POST /drive/oauth/start` - Inicia flujo OAuth2 y retorna URL de autorización
+  - `POST /drive/oauth/callback` - Procesa callback de Google y guarda tokens
+  - `GET /drive/oauth/status` - Verifica estado de autenticación del usuario
+  - `DELETE /drive/oauth` - Revoca tokens y elimina integración
+* **Consulta de Archivos**: `POST /drive/query` - Busca archivos en Google Drive del usuario
+  - Búsqueda en carpeta de Libros configurada
+  - Retorna metadata completa (nombre, tipo, tamaño, fecha)
+  - Filtrado por tipo de archivo y nombre
+* **Intent Automático**: Mensajes como "¿qué libros tengo guardados?" se procesan automáticamente
+
 ### 📊 Registro de Acciones
 * **Log**: `POST /actions` para auditoría
 * **Consulta**: `GET /actions?userId={userId}`
@@ -83,12 +104,13 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 | Capa               | Tecnología                               |
 | ------------------ | ---------------------------------------- |
 | Compute            | AWS Lambda (Node.js 18.x)                |
-| Shared Code        | Lambda Layers (TagService)               |
+| Shared Code        | Lambda Layers (TagService, DriveService) |
 | API                | Amazon API Gateway v2 (HTTP API)         |
 | Base de datos      | Amazon DynamoDB                          |
 | Almacenamiento     | Amazon S3                                |
 | Transcripción      | OpenAI Whisper API                       |
 | IA / Clasificación | OpenAI GPT-4 Turbo                       |
+| Integraciones      | Google Drive API (OAuth2)                |
 | CI/CD              | GitHub Actions                           |
 | Infraestructura    | Terraform (estado en S3 + DynamoDB Lock) |
 
@@ -280,6 +302,11 @@ De este modo, la sección de **“En GitHub Secrets”** de tu README servirá c
 | GET    | `/tags/{tagId}`                             | getTag                         |
 | PUT    | `/tags/{tagId}`                             | updateTag                      |
 | DELETE | `/tags/{tagId}`                             | deleteTag                      |
+| POST   | `/drive/oauth/start`                        | driveOAuthStart                |
+| POST   | `/drive/oauth/callback`                     | driveOAuthCallback             |
+| GET    | `/drive/oauth/status`                       | driveOAuthStatus               |
+| DELETE | `/drive/oauth`                              | driveOAuthRevoke               |
+| POST   | `/drive/query`                              | driveQueryHandler              |
 | POST   | `/actions`                                  | recordAction                   |
 | GET    | `/actions?userId={userId}`                  | getActions                     |
 | POST   | `/users`                                    | createUser                     |
@@ -299,6 +326,15 @@ De este modo, la sección de **“En GitHub Secrets”** de tu README servirá c
 | **Notes**      | noteId         | —         | userId, title, content, attachmentKeys\[], tagIds, **tagNames**, tagSource, **sourceType**, **sourceThoughtId**, **sourceThoughtCreatedAt**, **createdFromThought**, createdAt, updatedAt, createdBy, lastModifiedBy |
 | **Tags**       | tagId          | —         | userId, name, color, **usageCount**, createdAt, updatedAt, createdBy, lastModifiedBy                                |
 | **ActionsLog** | actionId       | —         | userId, messageId?, actionType, status, details, timestamp, createdAt, updatedAt, createdBy, lastModifiedBy         |
+| **UserIntegrations** 🆕 | userId | integrationId | provider, accessToken, refreshToken, expiresAt, scope, createdAt, updatedAt |
+
+**Campos nuevos en v0.0.9:**
+- `UserIntegrations`: Nueva tabla para almacenar tokens OAuth2 de integraciones externas (Google Drive, etc.)
+- `provider`: Proveedor de la integración ("google_drive", etc.)
+- `accessToken`: Token de acceso OAuth2 (encriptado)
+- `refreshToken`: Token de refresh OAuth2 (encriptado)
+- `expiresAt`: Timestamp de expiración del access token
+- `scope`: Permisos otorgados por el usuario
 
 **Campos nuevos en v0.0.5:**
 - `sourceType`: Tipo de origen ("thoughts" | "tags" | "thought" | "manual")
