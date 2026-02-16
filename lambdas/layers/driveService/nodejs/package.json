@@ -5,6 +5,7 @@
   "main": "driveService.js",
   "dependencies": {
     "@googleapis/drive": "^8.0.0",
+    "aws-sdk": "^2.1692.0",
     "google-auth-library": "^9.0.0"
   }
 }
