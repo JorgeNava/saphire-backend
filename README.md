@@ -2,7 +2,15 @@
 
 Este backend **serverless** provee soporte para la aplicación móvil **Zafira**, permitiendo registrar, transcribir, clasificar y almacenar mensajes de texto o audio usando servicios de AWS y OpenAI.
 
-***Versión actual del backend:*** 0.0.9
+***Versión actual del backend:*** 0.0.10
+
+**🎉 Novedades v0.0.10:**
+- 🤖 **Confirmaciones IA:** Zafira responde en el chat al guardar pensamientos, crear listas e investigar
+- ❌ **Error fallback:** Mensajes de error visibles en el chat cuando un handler falla
+- ⚡ **DriveService optimizado:** `googleapis` reemplazado por `@googleapis/drive` + `google-auth-library` (~80MB vs ~305MB)
+- 🔄 **Lazy-load Drive API:** OAuth lambdas ya no crashean por carga innecesaria del módulo Drive
+- 💾 **driveQueryHandler:** Guarda respuestas como mensajes IA en DynamoDB
+- 🛡️ **Node.js 18 fix:** `aws-sdk` v2 restaurado en DriveService layer
 
 **🎉 Novedades v0.0.9:**
 - 🔗 **Integración Google Drive:** OAuth2 completo para acceso a archivos personales
@@ -81,7 +89,7 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
 * **Registro**: `POST /users`
 * **Perfil**: `GET/PUT /users/{userId}` con roles e IAM
 
-### 📁 Google Drive Integration 🆕
+### 📁 Google Drive Integration
 * **OAuth2 Flow**: Autenticación segura con Google Drive
   - `POST /drive/oauth/start` - Inicia flujo OAuth2 y retorna URL de autorización
   - `POST /drive/oauth/callback` - Procesa callback de Google y guarda tokens
@@ -91,7 +99,20 @@ Este backend **serverless** provee soporte para la aplicación móvil **Zafira**
   - Búsqueda en carpeta de Libros configurada
   - Retorna metadata completa (nombre, tipo, tamaño, fecha)
   - Filtrado por tipo de archivo y nombre
+  - **Respuestas guardadas como mensajes IA** en DynamoDB para visualización en chat 🆕
 * **Intent Automático**: Mensajes como "¿qué libros tengo guardados?" se procesan automáticamente
+
+### 🤖 Confirmaciones IA en Chat 🆕
+* **createThought**: Genera confirmación natural al guardar un pensamiento
+* **createListThroughAI**: Confirma creación de lista con nombre y cantidad de items
+* **performResearch**: Confirma investigación completada con hallazgos
+* **driveQueryHandler**: Guarda respuesta de consulta Drive como mensaje IA
+* Todas las confirmaciones usan GPT-4 Turbo para respuestas naturales en español
+
+### ❌ Error Fallback en Chat 🆕
+* Todos los handlers guardan mensaje de error en DynamoDB si fallan
+* El usuario ve "Lo siento, hubo un error..." en el chat en vez de silencio
+* Handlers cubiertos: `messageIntentIdentification`, `createThought`, `createListThroughAI`, `performResearch`, `driveQueryHandler`
 
 ### 📊 Registro de Acciones
 * **Log**: `POST /actions` para auditoría
@@ -135,10 +156,14 @@ saphire-backend/
 │   └── api_gateway.tf       # API Gateway HTTP
 ├── lambdas/                 # Funciones Lambda
 │   ├── layers/              # Lambda Layers compartidos
-│   │   └── tagService/      # Layer para gestión de tags
-│   │       ├── build.sh
+│   │   ├── tagService/      # Layer para gestión de tags
+│   │   │   ├── build.sh
+│   │   │   └── nodejs/
+│   │   │       ├── tagService.js
+│   │   │       └── package.json
+│   │   └── driveService/    # Layer para integración con Google Drive
 │   │       └── nodejs/
-│   │           ├── tagService.js
+│   │           ├── driveService.js
 │   │           └── package.json
 │   ├── messages/            # Endpoints de mensajes
 │   │   ├── createMessage/

@@ -4,6 +4,62 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
+## [0.0.10] - 2026-02-15
+
+### 🎉 Agregado
+
+#### Confirmaciones IA en Chat
+- **createThought**: Genera confirmación natural con GPT-4 Turbo al guardar un pensamiento
+- **createListThroughAI**: Confirma creación de lista mencionando nombre y cantidad de items
+- **performResearch**: Confirma investigación completada con hallazgos relevantes
+- **driveQueryHandler**: Guarda respuesta de consulta Drive como mensaje IA en DynamoDB
+- Todas las confirmaciones se guardan como mensajes con `sender: 'IA'` en la tabla Messages
+- Prompts en español con personalidad de Zafira
+
+#### Error Fallback en Chat
+- **messageIntentIdentification**: Guarda mensaje de error si la clasificación de intent falla
+- **createThought**: Guarda mensaje de error si falla al crear pensamiento
+- **createListThroughAI**: Guarda mensaje de error si falla al crear lista
+- **performResearch**: Guarda mensaje de error si falla la investigación
+- **driveQueryHandler**: Guarda mensaje de error si falla la consulta de Drive
+- Todos los mensajes de error usan `intent: 'error'` para identificación
+- Double-fault protection: try-catch anidado para que el error handler no crashee
+
+### 🔧 Modificado
+
+#### DriveService Layer — Optimización de Tamaño
+- **Antes**: `googleapis` (~250MB) causaba que el layer excediera el límite de 250MB
+- **Ahora**: `@googleapis/drive` (~15MB) + `google-auth-library` (~5MB) + `aws-sdk` (~60MB) ≈ **~80MB**
+- Reducción de **~73%** en tamaño del layer
+
+#### DriveService Layer — Lazy-load
+- `@googleapis/drive` ahora se carga bajo demanda (lazy-load) con `getDriveClient()`
+- Las lambdas de OAuth (start, callback, status, revoke) ya no cargan el módulo Drive innecesariamente
+- Previene crashes en OAuth lambdas si `@googleapis/drive` tiene problemas de carga
+
+#### DriveService Layer — Node.js 18 Compatibility
+- `aws-sdk` v2 restaurado en las dependencias del layer
+- Node.js 18 Lambda runtime NO incluye `aws-sdk` v2 (solo v3 `@aws-sdk/*`)
+- Sin `aws-sdk` en el layer, `require('aws-sdk')` fallaba en todas las Drive lambdas
+
+#### messageIntentIdentification
+- Agregado `uuid` y `DynamoDB.DocumentClient` para guardar mensajes de error
+- Variable `payload` movida fuera del `try` block para accesibilidad en `catch`
+
+### 🐛 Corregido
+
+- **driveQueryHandler no respondía en chat**: Ahora guarda la respuesta como mensaje IA en DynamoDB
+- **OAuth lambdas crasheaban (500)**: Causado por remoción accidental de `aws-sdk` del layer
+- **Silencio en errores**: Handlers fire-and-forget fallaban sin notificar al usuario
+
+### 📊 Métricas
+
+- **Lambdas Modificados:** 7 (driveQueryHandler, createThought, createListThroughAI, performResearch, messageIntentIdentification, driveService layer)
+- **Tamaño Layer:** ~305MB → ~80MB (-73%)
+- **Cobertura de Error Fallback:** 5 handlers
+
+---
+
 ## [0.0.9] - 2026-02-14
 
 ### 🎉 Agregado
