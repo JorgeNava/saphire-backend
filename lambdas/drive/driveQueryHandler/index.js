@@ -138,6 +138,7 @@ Si tienes links, inclúyelos.
 }
 
 exports.handler = async (event) => {
+  let userId;
   try {
     // Parsear entrada — puede venir del intent router o directo
     let body;
@@ -149,7 +150,8 @@ exports.handler = async (event) => {
       body = event;
     }
 
-    const { userId, query, content } = body;
+    userId = body.userId;
+    const { query, content } = body;
     const userQuery = query || content;
 
     if (!userId || !userQuery) {
@@ -332,6 +334,33 @@ exports.handler = async (event) => {
 
   } catch (err) {
     console.error('driveQueryHandler error:', err);
+
+    // Guardar mensaje de error en el chat para que el usuario sepa que falló
+    try {
+      if (userId && MSG_TABLE) {
+        const errNow = new Date().toISOString();
+        await docClient.put({
+          TableName: MSG_TABLE,
+          Item: {
+            conversationId: userId,
+            timestamp: errNow,
+            messageId: uuidv4(),
+            sender: 'IA',
+            content: 'Lo siento, hubo un error al consultar tus archivos de Google Drive. Intenta de nuevo en unos momentos.',
+            inputType: 'text',
+            intent: 'error',
+            tagIds: [],
+            tagNames: [],
+            tagSource: null,
+            createdAt: errNow,
+            updatedAt: errNow,
+          },
+        }).promise();
+      }
+    } catch (saveErr) {
+      console.error('Error al guardar mensaje de error:', saveErr.message);
+    }
+
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },

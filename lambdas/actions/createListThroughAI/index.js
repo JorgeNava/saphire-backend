@@ -42,8 +42,11 @@ Genera una respuesta breve y natural (1-2 oraciones) confirmando la creación de
 }
 
 exports.handler = async (event) => {
+  let userId;
   try {
-    const { userId, content } = JSON.parse(event.body || '{}');
+    const bodyParsed = JSON.parse(event.body || '{}');
+    userId = bodyParsed.userId;
+    const { content } = bodyParsed;
     if (!userId || !content) {
       return {
         statusCode: 400,
@@ -139,6 +142,32 @@ Texto: """${content}"""
     };
   } catch (err) {
     console.error('CreateListThroughAI error:', err);
+
+    try {
+      if (userId && MSG_TABLE) {
+        const errNow = new Date().toISOString();
+        await docClient.put({
+          TableName: MSG_TABLE,
+          Item: {
+            conversationId: userId,
+            timestamp: errNow,
+            messageId: uuidv4(),
+            sender: 'IA',
+            content: 'Lo siento, hubo un error al crear tu lista. Intenta de nuevo.',
+            inputType: 'text',
+            intent: 'error',
+            tagIds: [],
+            tagNames: [],
+            tagSource: null,
+            createdAt: errNow,
+            updatedAt: errNow,
+          },
+        }).promise();
+      }
+    } catch (saveErr) {
+      console.error('Error al guardar mensaje de error:', saveErr.message);
+    }
+
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Error al crear lista con IA.' })

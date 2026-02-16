@@ -5,8 +5,11 @@
  */
 
 const AWS   = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
 
 const lambda      = new AWS.Lambda({ region: process.env.AWS_REGION });
+const docClient   = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const MSG_TABLE   = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY  = process.env.OPENAI_API_KEY_AWS_USE;
 const THOUGHT_LAMBDA = process.env.LAMBDA_NAME_CREATE_THOUGHT;
@@ -30,8 +33,9 @@ function inferMessageType(intent) {
 }
 
 exports.handler = async (event) => {
+  let payload = {};
   try {
-    const payload = typeof event === 'string'
+    payload = typeof event === 'string'
       ? JSON.parse(event)
       : event || {};
 
@@ -150,7 +154,34 @@ Responde en este formato exacto:
 
   } catch (err) {
     console.error('messageIntentIdentification error:', err);
-    // En caso de fallo, devolvemos clasificación por defecto
+
+    // Guardar mensaje de error en el chat
+    try {
+      const errUserId = payload?.sender || payload?.userId;
+      if (errUserId && MSG_TABLE) {
+        const errNow = new Date().toISOString();
+        await docClient.put({
+          TableName: MSG_TABLE,
+          Item: {
+            conversationId: errUserId,
+            timestamp: errNow,
+            messageId: uuidv4(),
+            sender: 'IA',
+            content: 'Lo siento, hubo un error al procesar tu mensaje. Intenta de nuevo.',
+            inputType: 'text',
+            intent: 'error',
+            tagIds: [],
+            tagNames: [],
+            tagSource: null,
+            createdAt: errNow,
+            updatedAt: errNow,
+          },
+        }).promise();
+      }
+    } catch (saveErr) {
+      console.error('Error al guardar mensaje de error:', saveErr.message);
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({ intent: 'thought', messageType: 'thought' })

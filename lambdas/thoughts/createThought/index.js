@@ -49,6 +49,7 @@ Genera una respuesta breve y natural (1-2 oraciones) confirmando que guardaste s
 }
 
 exports.handler = async (event) => {
+  let userId;
   try {
     // Parse payload (API Gateway vs SDK invoke)
     let payload;
@@ -58,7 +59,6 @@ exports.handler = async (event) => {
       payload = event;
     }
     const {
-      userId,
       content,
       tags,
       tagIds: existingTagIds,
@@ -71,6 +71,7 @@ exports.handler = async (event) => {
       sourceInputType,
       sourceIntent
     } = payload;
+    userId = payload.userId;
 
     if (!userId || !content) {
       return { 
@@ -171,6 +172,32 @@ exports.handler = async (event) => {
 
   } catch (err) {
     console.error('createThought error:', err);
+
+    try {
+      if (userId && MSG_TABLE) {
+        const errNow = new Date().toISOString();
+        await docClient.put({
+          TableName: MSG_TABLE,
+          Item: {
+            conversationId: userId,
+            timestamp: errNow,
+            messageId: uuidv4(),
+            sender: 'IA',
+            content: 'Lo siento, hubo un error al guardar tu pensamiento. Intenta de nuevo.',
+            inputType: 'text',
+            intent: 'error',
+            tagIds: [],
+            tagNames: [],
+            tagSource: null,
+            createdAt: errNow,
+            updatedAt: errNow,
+          },
+        }).promise();
+      }
+    } catch (saveErr) {
+      console.error('Error al guardar mensaje de error:', saveErr.message);
+    }
+
     return { 
       statusCode: 500, 
       body: JSON.stringify({ error: 'Error al crear el thought.' }) 
