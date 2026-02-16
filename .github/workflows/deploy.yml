@@ -55,6 +55,27 @@ jobs:
           echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-tagService.zip"
           ls -lh build/${TABLE_PREFIX}-layer-tagService.zip
 
+      # 4b) Build Lambda Layer DriveService
+      - name: Build Lambda Layer DriveService
+        run: |
+          echo "📦 Building Lambda Layer: DriveService"
+          mkdir -p build
+          
+          cd lambdas/layers/driveService/nodejs
+          npm install --production
+          cd ../../../..
+          
+          cd lambdas/layers/driveService
+          zip -r ../../../build/${TABLE_PREFIX}-layer-driveService.zip nodejs/ \
+            -x "nodejs/package-lock.json" \
+            -x "nodejs/.DS_Store" \
+            -x "nodejs/node_modules/.bin/*" \
+            -x "*.md"
+          cd ../../..
+          
+          echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-driveService.zip"
+          ls -lh build/${TABLE_PREFIX}-layer-driveService.zip
+
       # 5) Build & Zip de cada Lambda
       - name: Build & Zip Lambdas
         run: |
@@ -100,6 +121,12 @@ jobs:
           lambda_name_perform_research        = "${{ secrets.LAMBDA_NAME_PERFORM_RESEARCH }}"
           lambda_name_message_intent_identification = "${{ secrets.LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION }}"
           app_feature_flag_delete_audio_after_transcribe = "${{ secrets.APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE }}"
+          aws_dynamodb_table_user_integrations = "${{ secrets.AWS_DYNAMODB_TABLE_USER_INTEGRATIONS }}"
+          google_oauth_client_id               = "${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}"
+          google_oauth_client_secret           = "${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}"
+          google_drive_books_folder_id         = "${{ secrets.GOOGLE_DRIVE_BOOKS_FOLDER_ID }}"
+          app_deep_link_scheme                 = "saphiremobile"
+          lambda_name_drive_query_handler      = "${{ secrets.LAMBDA_NAME_DRIVE_QUERY_HANDLER }}"
           EOF
 
       # 8) Terraform Init con backend configurado vía CLI

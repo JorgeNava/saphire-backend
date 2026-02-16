@@ -101,7 +101,7 @@ function findBestMatch(files, target) {
  */
 async function generateResponse(query, context, instruction) {
   const systemPrompt = `
-Eres Zafira AI, un asistente personal inteligente. El usuario te pregunta sobre sus resúmenes de libros guardados en Google Drive.
+Eres Zafira, un asistente personal inteligente. El usuario te pregunta sobre sus resúmenes de libros guardados en Google Drive.
 
 ${instruction}
 
