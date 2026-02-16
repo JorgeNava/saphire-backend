@@ -8,8 +8,38 @@ const { v4: uuidv4 } = require('uuid');
 
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const LISTS_TABLE = process.env.AWS_DYNAMODB_TABLE_LISTS;
+const MSG_TABLE   = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY  = process.env.OPENAI_API_KEY_AWS_USE;
+
+async function generateListConfirmation(listName, itemCount, itemsPreview, originalContent) {
+  const prompt = `Eres Zafira, un asistente personal. El usuario te pidió crear una lista y la creaste exitosamente.
+
+Mensaje original del usuario: "${originalContent.substring(0, 200)}"
+Lista creada: "${listName}" con ${itemCount} elementos: ${itemsPreview}
+
+Genera una respuesta breve y natural (1-2 oraciones) confirmando la creación de la lista. Menciona el nombre y cuántos elementos tiene. Puedes sugerir algo relevante. Responde en español.`;
+
+  try {
+    const res = await fetch(OPENAI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4-turbo',
+        messages: [{ role: 'system', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.7,
+      }),
+    });
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content?.trim() || `Listo, creé la lista "${listName}" con ${itemCount} elementos. 📋`;
+  } catch {
+    return `Listo, creé la lista "${listName}" con ${itemCount} elementos. 📋`;
+  }
+}
 
 exports.handler = async (event) => {
   try {
@@ -75,6 +105,33 @@ Texto: """${content}"""
       TableName: LISTS_TABLE,
       Item: listItem
     }).promise();
+
+    // Guardar confirmación IA como mensaje en el chat
+    try {
+      const itemsPreview = items.slice(0, 5).join(', ');
+      const extra = items.length > 5 ? ` y ${items.length - 5} más` : '';
+      const confirmContent = await generateListConfirmation(name, items.length, itemsPreview + extra, content);
+      const msgNow = new Date().toISOString();
+      await docClient.put({
+        TableName: MSG_TABLE,
+        Item: {
+          conversationId: userId,
+          timestamp: msgNow,
+          messageId: uuidv4(),
+          sender: 'IA',
+          content: confirmContent,
+          inputType: 'text',
+          intent: 'list',
+          tagIds: [],
+          tagNames: [],
+          tagSource: null,
+          createdAt: msgNow,
+          updatedAt: msgNow,
+        },
+      }).promise();
+    } catch (msgErr) {
+      console.warn('createListThroughAI - Error al guardar mensaje confirmación:', msgErr.message);
+    }
 
     return {
       statusCode: 201,

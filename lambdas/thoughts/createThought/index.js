@@ -10,7 +10,43 @@ const { TagService } = require('/opt/nodejs/tagService');
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const tagService = new TagService();
 const THOUGHTS_TBL = process.env.AWS_DYNAMODB_TABLE_THOUGHTS;
+const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
+const OPENAI_URL = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
+const OPENAI_KEY = process.env.OPENAI_API_KEY_AWS_USE;
 const THOUGHTS_GSI_USER = 'GSI-userThoughts';
+
+async function generateConfirmation(thoughtContent, tagNames) {
+  const tagsInfo = tagNames && tagNames.length > 0
+    ? `Etiquetas asignadas: ${tagNames.join(', ')}.`
+    : '';
+
+  const prompt = `Eres Zafira, un asistente personal. El usuario acaba de enviarte un mensaje y lo guardaste como pensamiento.
+
+Pensamiento guardado: "${thoughtContent.substring(0, 200)}"
+${tagsInfo}
+
+Genera una respuesta breve y natural (1-2 oraciones) confirmando que guardaste su pensamiento. Puedes hacer una pregunta de seguimiento relevante si tiene sentido. Responde en español.`;
+
+  try {
+    const res = await fetch(OPENAI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4-turbo',
+        messages: [{ role: 'system', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.7,
+      }),
+    });
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content?.trim() || 'Listo, guardé tu pensamiento. 💭';
+  } catch {
+    return 'Listo, guardé tu pensamiento. 💭';
+  }
+}
 
 exports.handler = async (event) => {
   try {
@@ -102,6 +138,31 @@ exports.handler = async (event) => {
     };
     
     await docClient.put({ TableName: THOUGHTS_TBL, Item: item }).promise();
+
+    // Generar confirmación IA y guardarla como mensaje en el chat
+    try {
+      const confirmContent = await generateConfirmation(content, tagNames);
+      const msgNow = new Date().toISOString();
+      await docClient.put({
+        TableName: MSG_TABLE,
+        Item: {
+          conversationId: sourceConversationId || userId,
+          timestamp: msgNow,
+          messageId: uuidv4(),
+          sender: 'IA',
+          content: confirmContent,
+          inputType: 'text',
+          intent: 'thought',
+          tagIds: [],
+          tagNames: [],
+          tagSource: null,
+          createdAt: msgNow,
+          updatedAt: msgNow,
+        },
+      }).promise();
+    } catch (msgErr) {
+      console.warn('createThought - Error al guardar mensaje de confirmación:', msgErr.message);
+    }
 
     return { 
       statusCode: 201, 
