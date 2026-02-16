@@ -13,10 +13,14 @@
  * - stats: Estadísticas (cuántos libros, último agregado, etc.)
  */
 
+const AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
 const { DriveService } = require('/opt/nodejs/driveService');
 
+const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const driveService = new DriveService();
 
+const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const OPENAI_URL = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY = process.env.OPENAI_API_KEY_AWS_USE;
 const BOOKS_FOLDER_ID = process.env.GOOGLE_DRIVE_BOOKS_FOLDER_ID;
@@ -290,6 +294,30 @@ exports.handler = async (event) => {
 
     console.log('✅ Drive query respondida, sub_intent:', sub_intent);
 
+    // Guardar la respuesta como mensaje de IA en DynamoDB
+    const now = new Date().toISOString();
+    const iaMessage = {
+      conversationId: userId,
+      timestamp: now,
+      messageId: uuidv4(),
+      sender: 'IA',
+      content: response,
+      inputType: 'text',
+      intent: 'drive_query',
+      tagIds: [],
+      tagNames: [],
+      tagSource: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await docClient.put({
+      TableName: MSG_TABLE,
+      Item: iaMessage,
+    }).promise();
+
+    console.log('💾 Mensaje IA guardado:', iaMessage.messageId);
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -298,6 +326,7 @@ exports.handler = async (event) => {
         sub_intent,
         driveConnected: true,
         filesCount: files.length,
+        messageId: iaMessage.messageId,
       }),
     };
 
