@@ -5,7 +5,16 @@
 
 const AWS = require('aws-sdk');
 const { OAuth2Client } = require('google-auth-library');
-const { drive: driveApi } = require('@googleapis/drive');
+
+// Lazy-load Drive API para que las lambdas de OAuth no fallen si hay problema con el módulo
+let _driveApi = null;
+function getDriveClient(auth) {
+  if (!_driveApi) {
+    const driveModule = require('@googleapis/drive');
+    _driveApi = driveModule.drive;
+  }
+  return _driveApi({ version: 'v3', auth });
+}
 
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const INTEGRATIONS_TABLE = process.env.AWS_DYNAMODB_TABLE_USER_INTEGRATIONS;
@@ -156,7 +165,7 @@ class DriveService {
    * @returns {Promise<Array<{id, name, mimeType, webViewLink, modifiedTime}>>}
    */
   async listFiles(authClient, folderId) {
-    const driveClient = driveApi({ version: 'v3', auth: authClient });
+    const driveClient = getDriveClient(authClient);
     const response = await driveClient.files.list({
       q: `'${folderId}' in parents and trashed = false`,
       fields: 'files(id, name, mimeType, webViewLink, modifiedTime, createdTime)',
@@ -174,7 +183,7 @@ class DriveService {
    * @returns {Promise<string>}
    */
   async getFileContent(authClient, fileId) {
-    const driveClient = driveApi({ version: 'v3', auth: authClient });
+    const driveClient = getDriveClient(authClient);
     const response = await driveClient.files.export({
       fileId,
       mimeType: 'text/plain',
@@ -200,7 +209,7 @@ class DriveService {
    * @returns {Promise<Array>}
    */
   async searchFiles(authClient, query, folderId) {
-    const driveClient = driveApi({ version: 'v3', auth: authClient });
+    const driveClient = getDriveClient(authClient);
     const response = await driveClient.files.list({
       q: `'${folderId}' in parents and name contains '${query}' and trashed = false`,
       fields: 'files(id, name, mimeType, webViewLink, modifiedTime, createdTime)',
