@@ -4,7 +4,7 @@
   "description": "Servicio compartido para integración con Google Drive OAuth2 en Zafira",
   "main": "driveService.js",
   "dependencies": {
-    "aws-sdk": "^2.1349.0",
-    "googleapis": "^126.0.0"
+    "@googleapis/drive": "^8.0.0",
+    "google-auth-library": "^9.0.0"
   }
 }

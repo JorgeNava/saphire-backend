@@ -4,7 +4,6 @@
   "description": "Maneja consultas sobre archivos de Google Drive usando RAG con OpenAI",
   "main": "index.js",
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
     "uuid": "^9.0.0"
   }
 }

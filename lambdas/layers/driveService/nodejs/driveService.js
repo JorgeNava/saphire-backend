@@ -4,7 +4,8 @@
  */
 
 const AWS = require('aws-sdk');
-const { google } = require('googleapis');
+const { OAuth2Client } = require('google-auth-library');
+const { drive: driveApi } = require('@googleapis/drive');
 
 const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
 const INTEGRATIONS_TABLE = process.env.AWS_DYNAMODB_TABLE_USER_INTEGRATIONS;
@@ -19,7 +20,7 @@ class DriveService {
    * @returns {google.auth.OAuth2}
    */
   createOAuth2Client(redirectUri) {
-    return new google.auth.OAuth2(
+    return new OAuth2Client(
       GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET,
       redirectUri
@@ -155,8 +156,8 @@ class DriveService {
    * @returns {Promise<Array<{id, name, mimeType, webViewLink, modifiedTime}>>}
    */
   async listFiles(authClient, folderId) {
-    const drive = google.drive({ version: 'v3', auth: authClient });
-    const response = await drive.files.list({
+    const driveClient = driveApi({ version: 'v3', auth: authClient });
+    const response = await driveClient.files.list({
       q: `'${folderId}' in parents and trashed = false`,
       fields: 'files(id, name, mimeType, webViewLink, modifiedTime, createdTime)',
       orderBy: 'name',
@@ -173,8 +174,8 @@ class DriveService {
    * @returns {Promise<string>}
    */
   async getFileContent(authClient, fileId) {
-    const drive = google.drive({ version: 'v3', auth: authClient });
-    const response = await drive.files.export({
+    const driveClient = driveApi({ version: 'v3', auth: authClient });
+    const response = await driveClient.files.export({
       fileId,
       mimeType: 'text/plain',
     });
@@ -199,8 +200,8 @@ class DriveService {
    * @returns {Promise<Array>}
    */
   async searchFiles(authClient, query, folderId) {
-    const drive = google.drive({ version: 'v3', auth: authClient });
-    const response = await drive.files.list({
+    const driveClient = driveApi({ version: 'v3', auth: authClient });
+    const response = await driveClient.files.list({
       q: `'${folderId}' in parents and name contains '${query}' and trashed = false`,
       fields: 'files(id, name, mimeType, webViewLink, modifiedTime, createdTime)',
       orderBy: 'name',
