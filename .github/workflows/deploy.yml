@@ -31,19 +31,29 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
-      # 4) Build Lambda Layer TagService
+      # 4) Cache npm dependencies for layers
+      - name: Cache Layer Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            lambdas/layers/*/nodejs/node_modules
+          key: ${{ runner.os }}-layers-${{ hashFiles('lambdas/layers/*/nodejs/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-layers-
+
+      # 4a) Build Lambda Layer TagService
       - name: Build Lambda Layer TagService
         run: |
           echo "📦 Building Lambda Layer: TagService"
           mkdir -p build
           
-          # Install dependencies in the nodejs directory
           cd lambdas/layers/tagService/nodejs
-          npm install --production
+          npm ci --production --prefer-offline
           cd ../../../..
           
-          # Create ZIP from the layer directory
           cd lambdas/layers/tagService
           zip -r ../../../build/${TABLE_PREFIX}-layer-tagService.zip nodejs/ \
             -x "nodejs/package-lock.json" \
@@ -62,7 +72,7 @@ jobs:
           mkdir -p build
           
           cd lambdas/layers/driveService/nodejs
-          npm install --production
+          npm ci --production --prefer-offline
           cd ../../../..
           
           cd lambdas/layers/driveService
@@ -76,7 +86,17 @@ jobs:
           echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-driveService.zip"
           ls -lh build/${TABLE_PREFIX}-layer-driveService.zip
 
-      # 5) Build & Zip de cada Lambda
+      # 5) Cache Lambda dependencies
+      - name: Cache Lambda Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            lambdas/*/*/node_modules
+          key: ${{ runner.os }}-lambdas-${{ hashFiles('lambdas/*/*/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-lambdas-
+
+      # 5a) Build & Zip de cada Lambda (optimizado con npm ci)
       - name: Build & Zip Lambdas
         run: |
           for dir in lambdas/*/*; do
@@ -86,8 +106,10 @@ jobs:
               mkdir -p "$zip_dir"
               cp -r "${dir}/." "$zip_dir/"
               pushd "$zip_dir"
-                npm install --omit=dev
-                zip -r "../${TABLE_PREFIX}-${fn}.zip" .
+                if [ -f "package-lock.json" ]; then
+                  npm ci --omit=dev --prefer-offline 2>/dev/null || npm install --omit=dev
+                fi
+                zip -r "../${TABLE_PREFIX}-${fn}.zip" . -x "*.git*" -x "*.md" -x "node_modules/.cache/*"
               popd
             fi
           done
@@ -140,12 +162,12 @@ jobs:
             -backend-config="dynamodb_table=zafira-terraform-locks" \
             -backend-config="encrypt=true"
 
-      # 9) (Opcional) Verifica cambios
+      # 9) Terraform Plan (con paralelismo)
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan -out=tfplan
+        run: terraform plan -out=tfplan -parallelism=20
 
-      # 10) Aplica la infraestructura
+      # 10) Terraform Apply (con paralelismo)
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -parallelism=20 tfplan
