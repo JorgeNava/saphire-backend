@@ -32,15 +32,6 @@ jobs:
         with:
           node-version: 18
 
-      # 4) Cache npm dependencies for layers
-      - name: Cache Layer Dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            lambdas/layers/*/nodejs/node_modules
-          key: ${{ runner.os }}-layers-${{ hashFiles('lambdas/layers/*/nodejs/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-layers-
 
       # 4a) Build Lambda Layer TagService
       - name: Build Lambda Layer TagService
@@ -49,7 +40,7 @@ jobs:
           mkdir -p build
           
           cd lambdas/layers/tagService/nodejs
-          npm ci --production --prefer-offline
+          npm install --production
           cd ../../../..
           
           cd lambdas/layers/tagService
@@ -70,7 +61,7 @@ jobs:
           mkdir -p build
           
           cd lambdas/layers/driveService/nodejs
-          npm ci --production --prefer-offline
+          npm install --production
           cd ../../../..
           
           cd lambdas/layers/driveService
@@ -84,15 +75,6 @@ jobs:
           echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-driveService.zip"
           ls -lh build/${TABLE_PREFIX}-layer-driveService.zip
 
-      # 5) Cache Lambda dependencies
-      - name: Cache Lambda Dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            lambdas/*/*/node_modules
-          key: ${{ runner.os }}-lambdas-${{ hashFiles('lambdas/*/*/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-lambdas-
 
       # 5a) Build & Zip de cada Lambda (optimizado con npm ci)
       - name: Build & Zip Lambdas
@@ -104,9 +86,7 @@ jobs:
               mkdir -p "$zip_dir"
               cp -r "${dir}/." "$zip_dir/"
               pushd "$zip_dir"
-                if [ -f "package-lock.json" ]; then
-                  npm ci --omit=dev --prefer-offline 2>/dev/null || npm install --omit=dev
-                fi
+                npm install --omit=dev
                 zip -r "../${TABLE_PREFIX}-${fn}.zip" . -x "*.git*" -x "*.md" -x "node_modules/.cache/*"
               popd
             fi
