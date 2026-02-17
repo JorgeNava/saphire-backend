@@ -211,35 +211,50 @@ exports.handler = async (event) => {
     }
 
     // Clasificar sub-intent
+    console.log('🔍 DEBUG: Clasificando sub-intent para query:', userQuery);
     const classification = await classifySubIntent(userQuery);
     const { sub_intent, target, topic } = classification;
     console.log('📚 Drive query classification:', JSON.stringify(classification));
 
     // Obtener lista de archivos
+    console.log('🔍 DEBUG: Obteniendo archivos de Drive...');
     const files = await driveService.listFiles(authClient, BOOKS_FOLDER_ID);
     console.log(`📁 ${files.length} archivos encontrados en carpeta de libros`);
+    console.log('🔍 DEBUG: Archivos disponibles:', files.map(f => f.name).join(', '));
 
     let response;
 
     switch (sub_intent) {
       case 'list_files': {
+        console.log('🔍 DEBUG: Ejecutando list_files case');
         const fileList = files.map((f, i) => `${i + 1}. ${f.name}`).join('\n');
         const context = `Archivos en la carpeta de Libros:\n${fileList}`;
         response = await generateResponse(userQuery, context, 'Lista los libros de forma ordenada y amigable.');
+        console.log('✅ DEBUG: list_files response generada');
         break;
       }
 
       case 'get_summary':
       case 'get_content': {
+        console.log('🔍 DEBUG: Ejecutando get_content/get_summary case');
+        console.log('🔍 DEBUG: Target a buscar:', target);
         const file = findBestMatch(files, target);
+        console.log('🔍 DEBUG: Archivo encontrado:', file ? file.name : 'NULL');
+        
         if (!file) {
+          console.log('❌ DEBUG: No se encontró el archivo, generando respuesta de error');
           response = `No encontré un libro que coincida con "${target}" en tu carpeta de Drive. Tus libros disponibles son:\n${files.map(f => `• ${f.name}`).join('\n')}`;
           break;
         }
+        
+        console.log('🔍 DEBUG: Leyendo contenido del archivo:', file.name);
         const content = await driveService.getFileContent(authClient, file.id);
+        console.log('🔍 DEBUG: Content length:', content.length);
+        
         const truncated = content.substring(0, 8000);
         const context = `Contenido del resumen "${file.name}":\n${truncated}`;
         response = await generateResponse(userQuery, context, `El usuario pregunta sobre el libro "${file.name}". Responde basándote en el contenido del resumen. Si pregunta sobre algo específico del contenido, busca esa información y responde de forma concisa.`);
+        console.log('✅ DEBUG: get_content response generada, length:', response.length);
         break;
       }
 
@@ -315,6 +330,9 @@ exports.handler = async (event) => {
 
       case 'general_query':
       default: {
+        console.log('🔍 DEBUG: Ejecutando general_query/default case');
+        console.log('🔍 DEBUG: Query contiene palabras clave:', userQuery.toLowerCase());
+        
         // Optimización: primero intentar responder solo con metadata
         const fileList = files.map((f, i) => `${i + 1}. ${f.name}`).join('\n');
         const simpleContext = `Archivos disponibles:\n${fileList}`;
@@ -324,24 +342,31 @@ exports.handler = async (event) => {
             userQuery.toLowerCase().includes('cuántos') ||
             userQuery.toLowerCase().includes('lista') ||
             userQuery.toLowerCase().includes('archivos')) {
+          console.log('🔍 DEBUG: Usando solo metadata (pregunta simple)');
           response = await generateResponse(userQuery, simpleContext, 'Responde basándote en la lista de archivos disponibles.');
+          console.log('✅ DEBUG: general_query simple response generada');
           break;
         }
         
         // Para preguntas complejas, leer contenido (limitado a 5 archivos más recientes)
+        console.log('🔍 DEBUG: Pregunta compleja, leyendo contenido de archivos...');
         const contents = [];
         for (const file of files.slice(0, 5)) {
           try {
+            console.log('🔍 DEBUG: Leyendo archivo:', file.name);
             const text = await driveService.getFileContent(authClient, file.id);
             contents.push({ name: file.name, content: text.substring(0, 2000), link: driveService.getFileLink(file.id) });
+            console.log('✅ DEBUG: Archivo leído:', file.name, 'length:', text.length);
           } catch (err) {
-            console.warn(`No se pudo leer ${file.name}:`, err.message);
+            console.warn(`❌ No se pudo leer ${file.name}:`, err.message);
           }
         }
         const context = contents.length > 0
           ? contents.map(c => `--- ${c.name} (${c.link}) ---\n${c.content}`).join('\n\n')
           : simpleContext;
+        console.log('🔍 DEBUG: Context length para general_query:', context.length);
         response = await generateResponse(userQuery, context, 'Responde la consulta del usuario basándote en el contenido de sus archivos. Si no encuentras la información específica, dile qué archivos tiene disponibles.');
+        console.log('✅ DEBUG: general_query compleja response generada, length:', response.length);
       }
     }
 
