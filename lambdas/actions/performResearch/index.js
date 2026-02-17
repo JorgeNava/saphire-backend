@@ -77,7 +77,7 @@ Tema: "${content}"
 
     // Guardar confirmación IA como mensaje en el chat
     try {
-      const confirmPrompt = `Eres Zafira, un asistente personal. El usuario te pidió investigar un tema y completaste la investigación.
+      const confirmPrompt = `Eres Saphira, un asistente personal. El usuario te pidió investigar un tema y completaste la investigación.
 
 Tema solicitado: "${content.substring(0, 200)}"
 Título de la nota creada: "${note.title}"

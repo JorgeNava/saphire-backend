@@ -13,7 +13,7 @@ const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY  = process.env.OPENAI_API_KEY_AWS_USE;
 
 async function generateListConfirmation(listName, itemCount, itemsPreview, originalContent) {
-  const prompt = `Eres Zafira, un asistente personal. El usuario te pidió crear una lista y la creaste exitosamente.
+  const prompt = `Eres Saphira, un asistente personal. El usuario te pidió crear una lista y la creaste exitosamente.
 
 Mensaje original del usuario: "${originalContent.substring(0, 200)}"
 Lista creada: "${listName}" con ${itemCount} elementos: ${itemsPreview}

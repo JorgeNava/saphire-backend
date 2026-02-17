@@ -20,7 +20,7 @@ async function generateConfirmation(thoughtContent, tagNames) {
     ? `Etiquetas asignadas: ${tagNames.join(', ')}.`
     : '';
 
-  const prompt = `Eres Zafira, un asistente personal. El usuario acaba de enviarte un mensaje y lo guardaste como pensamiento.
+  const prompt = `Eres Saphira, un asistente personal. El usuario acaba de enviarte un mensaje y lo guardaste como pensamiento.
 
 Pensamiento guardado: "${thoughtContent.substring(0, 200)}"
 ${tagsInfo}

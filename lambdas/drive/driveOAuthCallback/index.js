@@ -61,7 +61,7 @@ exports.handler = async (event) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Zafira - Drive Conectado</title>
+          <title>Saphira - Drive Conectado</title>
           <style>
             body { font-family: -apple-system, sans-serif; text-align: center; padding: 60px 20px; background: #0A0E27; color: #fff; }
             h1 { color: #4CAF50; font-size: 24px; }
@@ -71,9 +71,9 @@ exports.handler = async (event) => {
         </head>
         <body>
           <h1>✅ Google Drive conectado</h1>
-          <p>Tu cuenta <strong>${email}</strong> ha sido vinculada exitosamente a Zafira.</p>
+          <p>Tu cuenta <strong>${email}</strong> ha sido vinculada exitosamente a Saphira.</p>
           <p>Ya puedes cerrar esta ventana y regresar a la app.</p>
-          <a href="${deepLink}" class="btn">Abrir Zafira</a>
+          <a href="${deepLink}" class="btn">Abrir Saphira</a>
           <script>
             // Intentar abrir el deep link automáticamente
             setTimeout(function() { window.location.href = "${deepLink}"; }, 1500);
@@ -94,7 +94,7 @@ exports.handler = async (event) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Zafira - Error</title>
+          <title>Saphira - Error</title>
           <style>
             body { font-family: -apple-system, sans-serif; text-align: center; padding: 60px 20px; background: #0A0E27; color: #fff; }
             h1 { color: #f44336; font-size: 24px; }

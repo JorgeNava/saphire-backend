@@ -107,7 +107,7 @@ function findBestMatch(files, target) {
  */
 async function generateResponse(query, context, instruction) {
   const systemPrompt = `
-Eres Zafira, un asistente personal inteligente. El usuario te pregunta sobre sus resúmenes de libros guardados en Google Drive.
+Eres Saphira, un asistente personal inteligente. El usuario te pregunta sobre sus resúmenes de libros guardados en Google Drive.
 
 ${instruction}
 
@@ -315,19 +315,32 @@ exports.handler = async (event) => {
 
       case 'general_query':
       default: {
-        // Para cualquier otra pregunta, leer contenido de todos los archivos y dejar que IA responda
+        // Optimización: primero intentar responder solo con metadata
+        const fileList = files.map((f, i) => `${i + 1}. ${f.name}`).join('\n');
+        const simpleContext = `Archivos disponibles:\n${fileList}`;
+        
+        // Para preguntas simples, solo usar metadata
+        if (userQuery.toLowerCase().includes('qué') || 
+            userQuery.toLowerCase().includes('cuántos') ||
+            userQuery.toLowerCase().includes('lista') ||
+            userQuery.toLowerCase().includes('archivos')) {
+          response = await generateResponse(userQuery, simpleContext, 'Responde basándote en la lista de archivos disponibles.');
+          break;
+        }
+        
+        // Para preguntas complejas, leer contenido (limitado a 5 archivos más recientes)
         const contents = [];
-        for (const file of files.slice(0, 10)) { // Limitar a 10 archivos para no exceder tokens
+        for (const file of files.slice(0, 5)) {
           try {
             const text = await driveService.getFileContent(authClient, file.id);
-            contents.push({ name: file.name, content: text.substring(0, 3000), link: driveService.getFileLink(file.id) });
+            contents.push({ name: file.name, content: text.substring(0, 2000), link: driveService.getFileLink(file.id) });
           } catch (err) {
             console.warn(`No se pudo leer ${file.name}:`, err.message);
           }
         }
         const context = contents.length > 0
           ? contents.map(c => `--- ${c.name} (${c.link}) ---\n${c.content}`).join('\n\n')
-          : `Archivos disponibles:\n${files.map(f => `• ${f.name}`).join('\n')}`;
+          : simpleContext;
         response = await generateResponse(userQuery, context, 'Responde la consulta del usuario basándote en el contenido de sus archivos. Si no encuentras la información específica, dile qué archivos tiene disponibles.');
       }
     }
