@@ -65,7 +65,7 @@ Intentos válidos:
   • thought     → pensamiento personal que debe guardarse.
   • list        → petición para crear/actualizar listas.
   • research    → petición de investigación o reporte.
-  • drive_query → consulta sobre archivos personales del usuario en Google Drive (libros, resúmenes, documentos guardados, carpetas, "mis archivos", "lo que tengo guardado").
+  • drive_query → CUALQUIER pregunta sobre archivos, documentos, libros, resúmenes, carpetas del usuario. Incluye preguntas sobre contenido específico de archivos ("qué dice X libro", "resumen de Y", "información sobre Z documento"). Si menciona un archivo/libro/documento específico del usuario, es drive_query.
   • order       → orden/comando accionable que no cae en las categorías anteriores.
 
 Mensaje: "${content}"

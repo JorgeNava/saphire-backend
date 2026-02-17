@@ -33,13 +33,15 @@ async function classifySubIntent(query) {
 Eres un clasificador de consultas sobre documentos de Google Drive. Clasifica la consulta y responde SOLO JSON válido.
 
 Sub-intents válidos:
-  • list_files    → listar archivos/libros disponibles
-  • get_summary   → obtener resumen o contenido de un libro específico
-  • search_topic  → buscar libros por tema o concepto
-  • get_link      → obtener el link/URL de un archivo
-  • compare       → comparar contenido entre múltiples libros
+  • list_files      → listar archivos/libros disponibles
+  • get_summary     → obtener resumen o contenido de un libro específico
+  • get_content     → obtener información específica del contenido de un archivo ("qué dice sobre X", "información sobre Y")
+  • search_topic    → buscar libros por tema o concepto
+  • get_link        → obtener el link/URL de un archivo
+  • compare         → comparar contenido entre múltiples libros
   • general_summary → resumen general de todos los libros
-  • stats         → estadísticas (cuántos libros, fechas, etc.)
+  • stats           → estadísticas (cuántos libros, fechas, etc.)
+  • general_query   → cualquier otra pregunta sobre los archivos
 
 Si la consulta menciona un libro específico, incluye el nombre aproximado en "target".
 Si la consulta menciona un tema, incluye el tema en "topic".
@@ -165,11 +167,33 @@ exports.handler = async (event) => {
     // Verificar que el usuario tiene Drive conectado
     const authClient = await driveService.getAuthClient(userId);
     if (!authClient) {
+      const notConnectedMsg = 'No tienes Google Drive conectado. Ve a Configuración > Integraciones para conectar tu cuenta de Google.';
+      
+      // Guardar mensaje en el chat
+      const now = new Date().toISOString();
+      await docClient.put({
+        TableName: MSG_TABLE,
+        Item: {
+          conversationId: userId,
+          timestamp: now,
+          messageId: uuidv4(),
+          sender: 'IA',
+          content: notConnectedMsg,
+          inputType: 'text',
+          intent: 'drive_query',
+          tagIds: [],
+          tagNames: [],
+          tagSource: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      }).promise();
+
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          response: 'No tienes Google Drive conectado. Ve a Configuración > Integraciones para conectar tu cuenta de Google.',
+          response: notConnectedMsg,
           driveConnected: false,
         }),
       };
@@ -205,7 +229,8 @@ exports.handler = async (event) => {
         break;
       }
 
-      case 'get_summary': {
+      case 'get_summary':
+      case 'get_content': {
         const file = findBestMatch(files, target);
         if (!file) {
           response = `No encontré un libro que coincida con "${target}" en tu carpeta de Drive. Tus libros disponibles son:\n${files.map(f => `• ${f.name}`).join('\n')}`;
@@ -214,7 +239,7 @@ exports.handler = async (event) => {
         const content = await driveService.getFileContent(authClient, file.id);
         const truncated = content.substring(0, 8000);
         const context = `Contenido del resumen "${file.name}":\n${truncated}`;
-        response = await generateResponse(userQuery, context, `El usuario pregunta sobre el libro "${file.name}". Responde basándote en el contenido del resumen.`);
+        response = await generateResponse(userQuery, context, `El usuario pregunta sobre el libro "${file.name}". Responde basándote en el contenido del resumen. Si pregunta sobre algo específico del contenido, busca esa información y responde de forma concisa.`);
         break;
       }
 
@@ -288,13 +313,32 @@ exports.handler = async (event) => {
         break;
       }
 
+      case 'general_query':
       default: {
-        const fileList = files.map(f => `• ${f.name}`).join('\n');
-        response = await generateResponse(userQuery, `Archivos disponibles:\n${fileList}`, 'Responde la consulta del usuario con la información disponible.');
+        // Para cualquier otra pregunta, leer contenido de todos los archivos y dejar que IA responda
+        const contents = [];
+        for (const file of files.slice(0, 10)) { // Limitar a 10 archivos para no exceder tokens
+          try {
+            const text = await driveService.getFileContent(authClient, file.id);
+            contents.push({ name: file.name, content: text.substring(0, 3000), link: driveService.getFileLink(file.id) });
+          } catch (err) {
+            console.warn(`No se pudo leer ${file.name}:`, err.message);
+          }
+        }
+        const context = contents.length > 0
+          ? contents.map(c => `--- ${c.name} (${c.link}) ---\n${c.content}`).join('\n\n')
+          : `Archivos disponibles:\n${files.map(f => `• ${f.name}`).join('\n')}`;
+        response = await generateResponse(userQuery, context, 'Responde la consulta del usuario basándote en el contenido de sus archivos. Si no encuentras la información específica, dile qué archivos tiene disponibles.');
       }
     }
 
     console.log('✅ Drive query respondida, sub_intent:', sub_intent);
+
+    // Garantizar que siempre haya una respuesta
+    if (!response || response.trim() === '') {
+      response = 'He procesado tu consulta sobre tus archivos de Drive. ¿Hay algo específico que quieras saber?';
+      console.warn('⚠️ Respuesta vacía, usando fallback');
+    }
 
     // Guardar la respuesta como mensaje de IA en DynamoDB
     const now = new Date().toISOString();
