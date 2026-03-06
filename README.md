@@ -179,6 +179,11 @@ saphire-backend/
 │   ├── tags/                # Endpoints de tags
 │   ├── actions/             # Endpoints de acciones
 │   ├── users/               # Endpoints de usuarios
+│   ├── maestros-joyeros/    # Lambdas de Maestros Joyeros (ver README)
+│   │   ├── reparaciones/
+│   │   ├── agenda-de-citas/
+│   │   ├── mas-vendidos/
+│   │   └── price-control/
 │   └── dist/                # ZIPs empaquetados (ignorado)
 ├── scripts/                 # Scripts de utilidad
 │   ├── build-all.sh         # Build completo (Layer + Lambdas)
