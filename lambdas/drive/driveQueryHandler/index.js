@@ -25,6 +25,26 @@ const OPENAI_URL = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY = process.env.OPENAI_API_KEY_AWS_USE;
 const BOOKS_FOLDER_ID = process.env.GOOGLE_DRIVE_BOOKS_FOLDER_ID;
 
+// --- Claude (reemplaza GPT-4) -------------------------------------------------
+async function askClaude(system, user, maxTokens) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: 'user', content: user }],
+    }),
+  });
+  const data = await res.json();
+  return (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+}
+
 /**
  * Determina el sub-intent de la consulta usando OpenAI
  */
@@ -51,22 +71,7 @@ Responde en este formato exacto:
 {"sub_intent":"...", "target":"...", "topic":"..."}
 `;
 
-  const aiRes = await fetch(OPENAI_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENAI_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-turbo',
-      messages: [{ role: 'system', content: systemPrompt }],
-      max_tokens: 100,
-      temperature: 0,
-    }),
-  });
-
-  const aiData = await aiRes.json();
-  const content = aiData.choices?.[0]?.message?.content || '';
+  const content = await askClaude(systemPrompt, 'Devuelve solo el JSON.', 120);
 
   try {
     const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -118,25 +123,7 @@ Responde de forma útil, concisa y en español. Si mencionas libros, incluye su 
 Si tienes links, inclúyelos.
 `;
 
-  const aiRes = await fetch(OPENAI_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENAI_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-turbo',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: query },
-      ],
-      max_tokens: 1500,
-      temperature: 0.3,
-    }),
-  });
-
-  const aiData = await aiRes.json();
-  return aiData.choices?.[0]?.message?.content || 'No pude generar una respuesta.';
+  return (await askClaude(systemPrompt, query, 1500)) || 'No pude generar una respuesta.';
 }
 
 exports.handler = async (event) => {

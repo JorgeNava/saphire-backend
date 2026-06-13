@@ -107,9 +107,9 @@ locals {
 }
 
 resource "aws_lambda_function" "all" {
-  for_each      = toset(local.lambda_functions)
-  function_name = "${local.prefix}-${each.value}"
-  filename      = "${var.lambda_zip_dir}/${local.prefix}-${each.value}.zip"
+  for_each         = toset(local.lambda_functions)
+  function_name    = "${local.prefix}-${each.value}"
+  filename         = "${var.lambda_zip_dir}/${local.prefix}-${each.value}.zip"
   source_code_hash = filebase64sha256("${var.lambda_zip_dir}/${local.prefix}-${each.value}.zip")
   publish          = true
 
@@ -129,29 +129,30 @@ resource "aws_lambda_function" "all" {
 
   environment {
     variables = {
-      TABLE_PREFIX                          = var.table_prefix
-      AWS_DYNAMODB_TABLE_MESSAGES           = var.aws_dynamodb_table_messages
-      AWS_DYNAMODB_TABLE_TAGS               = var.aws_dynamodb_table_tags
-      AWS_DYNAMODB_TABLE_LISTS              = var.aws_dynamodb_table_lists
-      AWS_DYNAMODB_TABLE_USERS              = var.aws_dynamodb_table_users
-      AWS_DYNAMODB_TABLE_NOTES              = var.aws_dynamodb_table_notes
-      AWS_DYNAMODB_TABLE_THOUGHTS           = var.aws_dynamodb_table_thoughts
-      AWS_DYNAMODB_TABLE_ACTIONS_LOG        = var.aws_dynamodb_table_actions_log
-      AWS_DYNAMODB_TABLE_USER_INTEGRATIONS  = var.aws_dynamodb_table_user_integrations
-      AWS_S3_MESSAGE_ATTACHMENTS_BUCKET     = var.aws_s3_message_attachments_bucket
-      AWS_S3_NOTES_ATTACHMENTS_BUCKET       = var.aws_s3_notes_attachments_bucket
-      AWS_S3_BUCKET_ATTACHMENTS             = var.aws_s3_notes_attachments_bucket
-      OPENAI_API_BASE_URL                   = var.openai_api_base_url
-      OPENAI_API_KEY_AWS_USE                = var.openai_api_key_aws_use
-      LAMBDA_NAME_CREATE_THOUGHT            = var.lambda_name_create_thought
-      LAMBDA_NAME_CREATE_LIST_THROUGH_AI    = var.lambda_name_create_list_through_ai
-      LAMBDA_NAME_PERFORM_RESEARCH          = var.lambda_name_perform_research
-      LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION = var.lambda_name_message_intent_identification
-      LAMBDA_NAME_DRIVE_QUERY_HANDLER       = var.lambda_name_drive_query_handler
-      GOOGLE_OAUTH_CLIENT_ID                = var.google_oauth_client_id
-      GOOGLE_OAUTH_CLIENT_SECRET            = var.google_oauth_client_secret
-      GOOGLE_DRIVE_BOOKS_FOLDER_ID          = var.google_drive_books_folder_id
-      APP_DEEP_LINK_SCHEME                  = var.app_deep_link_scheme
+      TABLE_PREFIX                                   = var.table_prefix
+      AWS_DYNAMODB_TABLE_MESSAGES                    = var.aws_dynamodb_table_messages
+      AWS_DYNAMODB_TABLE_TAGS                        = var.aws_dynamodb_table_tags
+      AWS_DYNAMODB_TABLE_LISTS                       = var.aws_dynamodb_table_lists
+      AWS_DYNAMODB_TABLE_USERS                       = var.aws_dynamodb_table_users
+      AWS_DYNAMODB_TABLE_NOTES                       = var.aws_dynamodb_table_notes
+      AWS_DYNAMODB_TABLE_THOUGHTS                    = var.aws_dynamodb_table_thoughts
+      AWS_DYNAMODB_TABLE_ACTIONS_LOG                 = var.aws_dynamodb_table_actions_log
+      AWS_DYNAMODB_TABLE_USER_INTEGRATIONS           = var.aws_dynamodb_table_user_integrations
+      AWS_S3_MESSAGE_ATTACHMENTS_BUCKET              = var.aws_s3_message_attachments_bucket
+      AWS_S3_NOTES_ATTACHMENTS_BUCKET                = var.aws_s3_notes_attachments_bucket
+      AWS_S3_BUCKET_ATTACHMENTS                      = var.aws_s3_notes_attachments_bucket
+      OPENAI_API_BASE_URL                            = var.openai_api_base_url
+      OPENAI_API_KEY_AWS_USE                         = var.openai_api_key_aws_use
+      ANTHROPIC_API_KEY                              = var.anthropic_api_key
+      LAMBDA_NAME_CREATE_THOUGHT                     = var.lambda_name_create_thought
+      LAMBDA_NAME_CREATE_LIST_THROUGH_AI             = var.lambda_name_create_list_through_ai
+      LAMBDA_NAME_PERFORM_RESEARCH                   = var.lambda_name_perform_research
+      LAMBDA_NAME_MESSAGE_INTENT_IDENTIFICATION      = var.lambda_name_message_intent_identification
+      LAMBDA_NAME_DRIVE_QUERY_HANDLER                = var.lambda_name_drive_query_handler
+      GOOGLE_OAUTH_CLIENT_ID                         = var.google_oauth_client_id
+      GOOGLE_OAUTH_CLIENT_SECRET                     = var.google_oauth_client_secret
+      GOOGLE_DRIVE_BOOKS_FOLDER_ID                   = var.google_drive_books_folder_id
+      APP_DEEP_LINK_SCHEME                           = var.app_deep_link_scheme
       APP_FEATURE_FLAG_DELETE_AUDIO_AFTER_TRANSCRIBE = var.app_feature_flag_delete_audio_after_transcribe ? "true" : "false"
     }
   }

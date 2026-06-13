@@ -28,21 +28,23 @@ ${tagsInfo}
 Genera una respuesta breve y natural (1-2 oraciones) confirmando que guardaste su pensamiento. Puedes hacer una pregunta de seguimiento relevante si tiene sentido. Responde en español.`;
 
   try {
-    const res = await fetch(OPENAI_URL, {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_KEY}`,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo',
-        messages: [{ role: 'system', content: prompt }],
+        model: 'claude-opus-4-8',
         max_tokens: 150,
-        temperature: 0.7,
+        system: prompt,
+        messages: [{ role: 'user', content: 'Genera la confirmación.' }],
       }),
     });
     const data = await res.json();
-    return data.choices?.[0]?.message?.content?.trim() || 'Listo, guardé tu pensamiento. 💭';
+    const text = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+    return text || 'Listo, guardé tu pensamiento. 💭';
   } catch {
     return 'Listo, guardé tu pensamiento. 💭';
   }

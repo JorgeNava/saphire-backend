@@ -4,6 +4,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
+## [0.0.11] - 2026-06-13
+
+### ✨ Agregado
+- **Lambda `exportToVault`** (programada, EventBridge diario 09:00 UTC): escribe un roll-up de
+  thoughts/notes recientes al vault unificado **Segundo Cerebro** (`JorgeNava/segundo-cerebro`,
+  carpeta `Pensamientos/`) vía GitHub Contents API. Standalone (sin ruta de API Gateway).
+  `terraform/export_to_vault.tf` + variables `github_access_token`/`github_repo`/`github_branch`.
+
+### 🔧 Modificado
+- **Migración GPT-4 → Claude (Opus 4.8)** en los 5 handlers de generación/clasificación
+  (`messageIntentIdentification`, `createThought` confirmación, `createMessageFromAudio` classifyTags,
+  `driveQueryHandler` classifySubIntent + generateResponse). Llamadas vía `fetch` a la API de Anthropic
+  (sin SDK, consistente con el código). Se quitó `temperature` (Opus 4.8 la rechaza). Nueva var
+  `anthropic_api_key` en el env de las lambdas.
+- **Whisper (transcripción de audio) se mantiene en OpenAI** — Claude no transcribe audio.
+
+### ⚠️ Pendiente de deploy
+- Agregar `github_access_token` y `anthropic_api_key` a `terraform/terraform.tfvars` (gitignoreado)
+  y a los secrets de GitHub Actions. Mergear `feat/export-vault-claude` a `main` dispara el deploy.
+
 ## [0.0.10] - 2026-02-15
 
 ### 🎉 Agregado

@@ -1,0 +1,6 @@
+{
+  "name": "export-to-vault",
+  "version": "1.0.0",
+  "description": "Roll-up diario de thoughts/notes -> vault Segundo Cerebro",
+  "main": "index.js"
+}

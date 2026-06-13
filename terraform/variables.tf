@@ -138,3 +138,25 @@ variable "lambda_name_drive_query_handler" {
   type        = string
   default     = "driveQueryHandler"
 }
+
+# --- Vault Segundo Cerebro (export) + Claude (swap de OpenAI) ----------------
+variable "github_access_token" {
+  description = "PAT con escritura al repo del vault (JorgeNava/segundo-cerebro). Valor en tfvars/CI."
+  type        = string
+  sensitive   = true
+}
+variable "github_repo" {
+  description = "Repo del vault unificado"
+  type        = string
+  default     = "JorgeNava/segundo-cerebro"
+}
+variable "github_branch" {
+  description = "Rama del vault"
+  type        = string
+  default     = "main"
+}
+variable "anthropic_api_key" {
+  description = "API key de Anthropic (Claude) para los handlers que antes usaban GPT-4. Valor en tfvars/CI."
+  type        = string
+  sensitive   = true
+}
