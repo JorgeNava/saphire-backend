@@ -14,6 +14,7 @@ resource "aws_lambda_function" "export_to_vault" {
   handler = "index.handler"
   runtime = "nodejs18.x"
   role    = aws_iam_role.lambda_exec.arn
+  # Sin layers: usa @aws-sdk v3 (incluido en el runtime nodejs18) + fetch global.
 
   timeout     = 60
   memory_size = 256
