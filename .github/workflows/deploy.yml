@@ -127,6 +127,8 @@ jobs:
           google_drive_books_folder_id         = "${{ secrets.GOOGLE_DRIVE_BOOKS_FOLDER_ID }}"
           app_deep_link_scheme                 = "saphiremobile"
           lambda_name_drive_query_handler      = "${{ secrets.LAMBDA_NAME_DRIVE_QUERY_HANDLER }}"
+          anthropic_api_key                    = "${{ secrets.ANTHROPIC_API_KEY }}"
+          github_access_token                  = "${{ secrets.VAULT_GITHUB_TOKEN }}"
           EOF
 
       # 8) Terraform Init con backend configurado vía CLI

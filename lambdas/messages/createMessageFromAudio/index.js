@@ -58,28 +58,26 @@ async function transcribe(buffer, filename) {
 }
 
 async function classifyTags(text, sender, existingNames) {
-  const resp = await fetch(OPENAI_API_CHAT_ENDPOINT , {
+  // Clasificación con Claude (antes GPT-4). Whisper se mantiene en OpenAI (Claude no transcribe audio).
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
     headers:{
-      'Content-Type':'application/json',
-      Authorization:`Bearer ${OPENAI_KEY}`
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type':'application/json'
     },
     body: JSON.stringify({
-      model:'gpt-4-turbo',
-      messages:[
-        { role:'system',
-          content:`Eres un clasificador de etiquetas para mensajes de ${sender}.  
-Las etiquetas existentes son: ${existingNames.join(', ')}.  
-Si ninguna aplica, sugiere hasta dos nuevas en una sola palabra, separadas por coma.  
-Solo responde con nombres separados por comas.` 
-        },
-        { role:'user', content:text }
-      ],
-      max_tokens:20
+      model:'claude-haiku-4-5', // clasificación de etiquetas: tarea simple
+      max_tokens:32,
+      system:`Eres un clasificador de etiquetas para mensajes de ${sender}.
+Las etiquetas existentes son: ${existingNames.join(', ')}.
+Si ninguna aplica, sugiere hasta dos nuevas en una sola palabra, separadas por coma.
+Solo responde con nombres separados por comas.`,
+      messages:[{ role:'user', content:text }]
     })
   });
   const data = await resp.json();
-  const content = data.choices?.[0]?.message?.content || '';
+  const content = (data.content || []).filter(b=>b.type==='text').map(b=>b.text).join('');
   return content.split(',')
     .map(s=>s.trim().toLowerCase())
     .filter(Boolean);

@@ -32,6 +32,26 @@ function inferMessageType(intent) {
   return intent === 'thought' ? 'thought' : 'order';
 }
 
+// --- Claude (reemplaza GPT-4) -------------------------------------------------
+async function askClaude(system, user, maxTokens) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5', // clasificación de intent: tarea simple
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: 'user', content: user }],
+    }),
+  });
+  const data = await res.json();
+  return (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+}
+
 exports.handler = async (event) => {
   let payload = {};
   try {
@@ -73,22 +93,7 @@ Responde en este formato exacto:
 {"intent":"thought|list|research|drive_query|order"}
 `;
 
-    const aiRes = await fetch(OPENAI_URL, {
-      method:  'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization:  `Bearer ${OPENAI_KEY}`
-      },
-      body: JSON.stringify({
-        model:    'gpt-4-turbo',
-        messages: [{ role: 'system', content: systemPrompt }],
-        max_tokens: 40,
-        temperature: 0
-      })
-    });
-
-    const aiData = await aiRes.json();
-    const aiContent = aiData.choices?.[0]?.message?.content || '';
+    const aiContent = await askClaude(systemPrompt, 'Devuelve solo el JSON.', 40);
     let intent = 'thought';
 
     try {
