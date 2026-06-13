@@ -4,15 +4,6 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ---
 
-## [0.0.12] - 2026-06-13
-
-### ⚡ Performance / CI-CD
-- **Layer `deps` compartido** (`lambdas/layers/deps`): aws-sdk v2 + @aws-sdk v3 (dynamodb/s3) +
-  uuid/axios/form-data se empaquetan UNA vez en un Lambda Layer en vez de en cada zip. El workflow
-  excluye esas deps del zip de cada función (vienen de `/opt/nodejs`). Zips de KB en vez de ~MB.
-- **`exportToVault` migrado a @aws-sdk v3** (incluido en el runtime nodejs18): el handler usaba
-  aws-sdk v2 que el runtime ya no trae → tronaba con `MODULE_NOT_FOUND`. Ahora cero deps, cero layer.
-
 ## [0.0.11] - 2026-06-13
 
 ### ✨ Agregado

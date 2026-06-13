@@ -121,10 +121,8 @@ resource "aws_lambda_function" "all" {
   timeout     = contains(local.heavy_functions, each.value) ? 15 : 3
   memory_size = contains(local.heavy_functions, each.value) ? 512 : 128
 
-  # Agregar Lambda Layers según la función. El layer `deps` va en TODAS
-  # (provee aws-sdk + @aws-sdk + uuid/axios/form-data, antes empaquetados por zip).
+  # Agregar Lambda Layers según la función
   layers = concat(
-    [aws_lambda_layer_version.deps.arn],
     contains(local.tag_service_users, each.value) ? [aws_lambda_layer_version.tag_service.arn] : [],
     contains(local.drive_service_users, each.value) ? [aws_lambda_layer_version.drive_service.arn] : []
   )
