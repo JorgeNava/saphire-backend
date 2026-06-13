@@ -18,9 +18,11 @@ NC='\033[0m'
 # Directorio base
 BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo -e "\n${BLUE}Paso 1: Empaquetando Lambda Layer (TagService)${NC}"
+echo -e "\n${BLUE}Paso 1: Empaquetando Lambda Layers (TagService + deps)${NC}"
 echo "------------------------------------------------"
 cd "$BASE_DIR/lambdas/layers/tagService"
+./build.sh
+cd "$BASE_DIR/lambdas/layers/deps"
 ./build.sh
 
 echo -e "\n${BLUE}Paso 2: Empaquetando Lambdas modificadas${NC}"

@@ -75,6 +75,24 @@ jobs:
           echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-driveService.zip"
           ls -lh build/${TABLE_PREFIX}-layer-driveService.zip
 
+      # 4c) Build Lambda Layer deps (deps compartidas: aws-sdk v2 + @aws-sdk v3 + uuid/axios/form-data)
+      - name: Build Lambda Layer deps
+        run: |
+          echo "📦 Building Lambda Layer: deps"
+          mkdir -p build
+          cd lambdas/layers/deps/nodejs
+          npm install --omit=dev
+          cd ../../../..
+          cd lambdas/layers/deps
+          zip -r ../../../build/${TABLE_PREFIX}-layer-deps.zip nodejs/ \
+            -x "nodejs/package-lock.json" \
+            -x "nodejs/.DS_Store" \
+            -x "nodejs/node_modules/.bin/*" \
+            -x "*.md"
+          cd ../../..
+          echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-deps.zip"
+          ls -lh build/${TABLE_PREFIX}-layer-deps.zip
+
 
       # 5a) Build & Zip de cada Lambda (optimizado con npm ci)
       - name: Build & Zip Lambdas
@@ -87,7 +105,11 @@ jobs:
               cp -r "${dir}/." "$zip_dir/"
               pushd "$zip_dir"
                 npm install --omit=dev
-                zip -r "../${TABLE_PREFIX}-${fn}.zip" . -x "*.git*" -x "*.md" -x "node_modules/.cache/*"
+                # Excluir las deps que ahora viven en el layer "deps" (vienen de /opt/nodejs).
+                zip -r "../${TABLE_PREFIX}-${fn}.zip" . \
+                  -x "*.git*" -x "*.md" -x "node_modules/.cache/*" \
+                  -x "node_modules/aws-sdk/*" -x "node_modules/@aws-sdk/*" -x "node_modules/@smithy/*" \
+                  -x "node_modules/uuid/*" -x "node_modules/axios/*" -x "node_modules/form-data/*"
               popd
             fi
           done
