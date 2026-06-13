@@ -15,6 +15,9 @@ resource "aws_lambda_function" "export_to_vault" {
   runtime = "nodejs18.x"
   role    = aws_iam_role.lambda_exec.arn
 
+  # Usa el layer deps (aws-sdk del runtime no incluye v2). El handler solo usa aws-sdk.
+  layers = [aws_lambda_layer_version.deps.arn]
+
   timeout     = 60
   memory_size = 256
 
