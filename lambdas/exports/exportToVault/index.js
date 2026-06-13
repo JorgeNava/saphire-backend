@@ -5,11 +5,13 @@
  * Pensamientos/. Cumple _sistema/CONTRATO-EXPORT.md.
  *
  * No tiene ruta de API Gateway — lo dispara una regla de EventBridge.
- * Runtime nodejs18.x: usa `fetch` global y `aws-sdk` del runtime (sin deps extra).
+ * Runtime nodejs18.x: usa `fetch` global y @aws-sdk v3 (incluido en el runtime,
+ * SIN deps empaquetadas ni layer).
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
+const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION }));
 
 const THOUGHTS_TBL = process.env.AWS_DYNAMODB_TABLE_THOUGHTS;
 const NOTES_TBL    = process.env.AWS_DYNAMODB_TABLE_NOTES;
@@ -60,12 +62,12 @@ async function recentItems(table, sinceIso) {
   const items = [];
   let ExclusiveStartKey;
   do {
-    const res = await docClient.scan({
+    const res = await docClient.send(new ScanCommand({
       TableName: table,
       FilterExpression: 'createdAt >= :since',
       ExpressionAttributeValues: { ':since': sinceIso },
       ExclusiveStartKey,
-    }).promise();
+    }));
     items.push(...(res.Items || []));
     ExclusiveStartKey = res.LastEvaluatedKey;
   } while (ExclusiveStartKey);
