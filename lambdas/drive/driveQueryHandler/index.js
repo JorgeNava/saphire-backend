@@ -26,7 +26,8 @@ const OPENAI_KEY = process.env.OPENAI_API_KEY_AWS_USE;
 const BOOKS_FOLDER_ID = process.env.GOOGLE_DRIVE_BOOKS_FOLDER_ID;
 
 // --- Claude (reemplaza GPT-4) -------------------------------------------------
-async function askClaude(system, user, maxTokens) {
+// Haiku para clasificación; Sonnet para generar la respuesta sustantiva (RAG).
+async function askClaude(system, user, maxTokens, model = 'claude-haiku-4-5') {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -35,7 +36,7 @@ async function askClaude(system, user, maxTokens) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-opus-4-8',
+      model,
       max_tokens: maxTokens,
       system,
       messages: [{ role: 'user', content: user }],
@@ -123,7 +124,7 @@ Responde de forma útil, concisa y en español. Si mencionas libros, incluye su 
 Si tienes links, inclúyelos.
 `;
 
-  return (await askClaude(systemPrompt, query, 1500)) || 'No pude generar una respuesta.';
+  return (await askClaude(systemPrompt, query, 1500, 'claude-sonnet-4-6')) || 'No pude generar una respuesta.';
 }
 
 exports.handler = async (event) => {

@@ -36,7 +36,7 @@ Genera una respuesta breve y natural (1-2 oraciones) confirmando que guardaste s
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-8',
+        model: 'claude-haiku-4-5', // confirmación breve: tarea ligera
         max_tokens: 150,
         system: prompt,
         messages: [{ role: 'user', content: 'Genera la confirmación.' }],

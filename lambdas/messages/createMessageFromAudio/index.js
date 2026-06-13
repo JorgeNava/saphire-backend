@@ -67,7 +67,7 @@ async function classifyTags(text, sender, existingNames) {
       'content-type':'application/json'
     },
     body: JSON.stringify({
-      model:'claude-opus-4-8',
+      model:'claude-haiku-4-5', // clasificación de etiquetas: tarea simple
       max_tokens:32,
       system:`Eres un clasificador de etiquetas para mensajes de ${sender}.
 Las etiquetas existentes son: ${existingNames.join(', ')}.

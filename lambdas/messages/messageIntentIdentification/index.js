@@ -42,7 +42,7 @@ async function askClaude(system, user, maxTokens) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-opus-4-8',
+      model: 'claude-haiku-4-5', // clasificación de intent: tarea simple
       max_tokens: maxTokens,
       system,
       messages: [{ role: 'user', content: user }],
