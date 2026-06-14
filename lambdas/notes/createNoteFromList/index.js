@@ -17,11 +17,10 @@
  *   }'
  */
 
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const { TagService } = require('/opt/nodejs/tagService');
 
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const tagService = new TagService();
 const LISTS_TABLE = process.env.AWS_DYNAMODB_TABLE_LISTS;
 const NOTES_TABLE = process.env.AWS_DYNAMODB_TABLE_NOTES;

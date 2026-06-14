@@ -12,9 +12,9 @@
  * curl -X DELETE "https://{api-id}.execute-api.{region}.amazonaws.com/notes/{noteId}?userId=user-123&hard=true"
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
-const s3 = new AWS.S3({ region: process.env.AWS_REGION });
+const { S3Client, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
+const { docClient } = require("/opt/nodejs/awsCompat");
+const s3 = new S3Client({ region: process.env.AWS_REGION });
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
 const S3_BUCKET = process.env.AWS_S3_BUCKET_ATTACHMENTS || 'zafira-attachments';
 
@@ -128,7 +128,7 @@ async function deleteS3Files(attachmentKeys) {
       }
     };
 
-    const result = await s3.deleteObjects(deleteParams).promise();
+    const result = await s3.send(new DeleteObjectsCommand(deleteParams));
     console.log('S3 files deleted:', result.Deleted?.length || 0);
     
     if (result.Errors && result.Errors.length > 0) {

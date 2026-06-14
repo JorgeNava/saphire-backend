@@ -4,11 +4,10 @@
  * Identifica el intent (thought, list o research) con OpenAI y despacha la Lambda correspondiente.
  */
 
-const AWS   = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-const lambda      = new AWS.Lambda({ region: process.env.AWS_REGION });
-const docClient   = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { lambda } = require("/opt/nodejs/awsCompat");
+const { docClient } = require("/opt/nodejs/awsCompat");
 const MSG_TABLE   = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const OPENAI_URL  = `${process.env.OPENAI_API_BASE_URL}/v1/chat/completions`;
 const OPENAI_KEY  = process.env.OPENAI_API_KEY_AWS_USE;

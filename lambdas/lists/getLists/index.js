@@ -10,8 +10,7 @@
  * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/lists?userId=user123&tagIds=tag1,tag2"
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_LISTS;
 const INDEX_NAME = 'GSI-userLists';
 

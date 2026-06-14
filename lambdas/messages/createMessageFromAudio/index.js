@@ -14,13 +14,12 @@
 const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const FormData     = require('form-data');
 const axios        = require('axios');
-const AWS          = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const { TagService } = require('/opt/nodejs/tagService');
 
 const s3       = new S3Client({ region: process.env.AWS_REGION });
-const docClient= new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
-const lambda   = new AWS.Lambda({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
+const { lambda } = require("/opt/nodejs/awsCompat");
 const tagService = new TagService();
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const TAGS_TABLE= process.env.AWS_DYNAMODB_TABLE_TAGS;

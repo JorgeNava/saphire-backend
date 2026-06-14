@@ -122,7 +122,9 @@ resource "aws_lambda_function" "all" {
   memory_size = contains(local.heavy_functions, each.value) ? 512 : 128
 
   # Agregar Lambda Layers según la función
+  # awsCompat va en TODAS: reemplaza al aws-sdk v2 que el runtime nodejs18 ya no incluye.
   layers = concat(
+    [aws_lambda_layer_version.aws_compat.arn],
     contains(local.tag_service_users, each.value) ? [aws_lambda_layer_version.tag_service.arn] : [],
     contains(local.drive_service_users, each.value) ? [aws_lambda_layer_version.drive_service.arn] : []
   )
@@ -160,6 +162,7 @@ resource "aws_lambda_function" "all" {
   depends_on = [
     aws_iam_role_policy.lambda_ddb_access,
     aws_iam_role_policy.lambda_logs,
+    aws_lambda_layer_version.aws_compat,
     aws_lambda_layer_version.tag_service
   ]
 }

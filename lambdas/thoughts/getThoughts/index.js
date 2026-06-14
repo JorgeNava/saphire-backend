@@ -17,8 +17,7 @@
  * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/thoughts?userId=user123&tagNames=trabajo,urgente&limit=50"
  */
 
-const AWS = require('aws-sdk');
-const docClient    = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const THOUGHTS_TBL = process.env.AWS_DYNAMODB_TABLE_THOUGHTS;
 const INDEX_NAME   = 'GSI-userThoughts';
 

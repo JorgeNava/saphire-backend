@@ -18,6 +18,9 @@ resource "aws_lambda_function" "export_to_vault" {
   timeout     = 60
   memory_size = 256
 
+  # Usa el v3 empaquetado en el layer awsCompat (su package.json ya no trae @aws-sdk).
+  layers = [aws_lambda_layer_version.aws_compat.arn]
+
   environment {
     variables = {
       AWS_DYNAMODB_TABLE_THOUGHTS = var.aws_dynamodb_table_thoughts
@@ -31,6 +34,7 @@ resource "aws_lambda_function" "export_to_vault" {
   depends_on = [
     aws_iam_role_policy.lambda_ddb_access,
     aws_iam_role_policy.lambda_logs,
+    aws_lambda_layer_version.aws_compat,
   ]
 }
 

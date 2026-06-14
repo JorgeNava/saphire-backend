@@ -18,6 +18,11 @@ NC='\033[0m'
 # Directorio base
 BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+echo -e "\n${BLUE}Paso 0: Empaquetando Lambda Layer (awsCompat)${NC}"
+echo "------------------------------------------------"
+cd "$BASE_DIR/lambdas/layers/awsCompat"
+chmod +x ./build.sh && ./build.sh
+
 echo -e "\n${BLUE}Paso 1: Empaquetando Lambda Layer (TagService)${NC}"
 echo "------------------------------------------------"
 cd "$BASE_DIR/lambdas/layers/tagService"

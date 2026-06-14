@@ -4,8 +4,7 @@
  * curl -X GET https://{api-id}.execute-api.{region}.amazonaws.com/notes/{noteId}
  */
 
-const AWS = require('aws-sdk');
-const docClient  = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
 
 exports.handler = async (event) => {

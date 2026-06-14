@@ -12,8 +12,7 @@
  * - sortOrder (opcional): asc | desc (default: desc)
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_NOTES;
 const INDEX_NAME = 'GSI-userNotesByDate';
 

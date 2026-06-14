@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.541.0",
-    "@aws-sdk/client-s3": "^3.541.0",
-    "aws-sdk": "^2.1349.0",
     "axios": "^1.6.0",
     "form-data": "^4.0.2",
     "uuid": "^9.0.0"

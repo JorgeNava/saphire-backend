@@ -14,8 +14,7 @@
  * curl -X GET "https://{api-id}.execute-api.{region}.amazonaws.com/messages?conversationId=conv123&limit=20&sortOrder=desc"
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+const { docClient } = require("/opt/nodejs/awsCompat");
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 
 exports.handler = async (event) => {

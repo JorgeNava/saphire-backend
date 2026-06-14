@@ -4,12 +4,11 @@
  * Guarda el mensaje y, si viene de un usuario (sender ≠ "IA"), llama al identificador de intent.
  */
 
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const { TagService } = require('/opt/nodejs/tagService');
 
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
-const lambda    = new AWS.Lambda({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
+const { lambda } = require("/opt/nodejs/awsCompat");
 const tagService = new TagService();
 
 const MSG_TABLE     = process.env.AWS_DYNAMODB_TABLE_MESSAGES;

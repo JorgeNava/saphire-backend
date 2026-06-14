@@ -13,10 +13,9 @@
  *   }'
  */
 
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const LISTS_TABLE = process.env.AWS_DYNAMODB_TABLE_LISTS;
 const THOUGHTS_TABLE = process.env.AWS_DYNAMODB_TABLE_THOUGHTS;
 const INDEX_NAME = 'GSI-userThoughts';
