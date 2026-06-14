@@ -9,10 +9,9 @@
  *   }'
  */
 
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-const docClient   = new AWS.DynamoDB.DocumentClient();
+const { docClient } = require("/opt/nodejs/awsCompat");
 const TABLE_NAME  = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {

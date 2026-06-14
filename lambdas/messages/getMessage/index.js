@@ -2,8 +2,7 @@
  * Lambda — getMessage
  * GET /messages/{messageId}
  */
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 
 exports.handler = async (event) => {

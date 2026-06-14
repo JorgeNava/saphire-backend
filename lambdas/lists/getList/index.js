@@ -4,8 +4,7 @@
  * curl -X GET https://{api-id}.execute-api.{region}.amazonaws.com/lists/{listId}
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+const { docClient } = require("/opt/nodejs/awsCompat");
 const TABLE_NAME = process.env.AWS_DYNAMODB_TABLE_LISTS;
 
 exports.handler = async (event) => {

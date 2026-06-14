@@ -4,7 +4,6 @@
   "description": "Servicio compartido para gestión de etiquetas en Zafira",
   "main": "tagService.js",
   "dependencies": {
-    "aws-sdk": "^2.1349.0",
     "uuid": "^9.0.0"
   }
 }

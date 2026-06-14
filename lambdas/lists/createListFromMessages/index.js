@@ -1,8 +1,7 @@
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const { TagService } = require('/opt/nodejs/tagService');
 
-const docClient = new AWS.DynamoDB.DocumentClient();
+const { docClient } = require("/opt/nodejs/awsCompat");
 const MESSAGES_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;
 const LISTS_TABLE = process.env.AWS_DYNAMODB_TABLE_LISTS;
 

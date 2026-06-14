@@ -33,6 +33,27 @@ jobs:
           node-version: 18
 
 
+      # 4-pre) Build Lambda Layer awsCompat (adaptador aws-sdk v2->v3, lo usan todas)
+      - name: Build Lambda Layer awsCompat
+        run: |
+          echo "📦 Building Lambda Layer: awsCompat"
+          mkdir -p build
+
+          cd lambdas/layers/awsCompat/nodejs
+          npm install --production
+          cd ../../../..
+
+          cd lambdas/layers/awsCompat
+          zip -r ../../../build/${TABLE_PREFIX}-layer-awsCompat.zip nodejs/ \
+            -x "nodejs/package-lock.json" \
+            -x "nodejs/.DS_Store" \
+            -x "nodejs/node_modules/.bin/*" \
+            -x "*.md"
+          cd ../../..
+
+          echo "✅ Layer packaged: build/${TABLE_PREFIX}-layer-awsCompat.zip"
+          ls -lh build/${TABLE_PREFIX}-layer-awsCompat.zip
+
       # 4a) Build Lambda Layer TagService
       - name: Build Lambda Layer TagService
         run: |

@@ -3,7 +3,6 @@
  * Usado por las Lambdas de OAuth2 y consultas de Drive
  */
 
-const AWS = require('aws-sdk');
 const { OAuth2Client } = require('google-auth-library');
 
 // Lazy-load Drive API para que las lambdas de OAuth no fallen si hay problema con el módulo
@@ -16,7 +15,7 @@ function getDriveClient(auth) {
   return _driveApi({ version: 'v3', auth });
 }
 
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const INTEGRATIONS_TABLE = process.env.AWS_DYNAMODB_TABLE_USER_INTEGRATIONS;
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;

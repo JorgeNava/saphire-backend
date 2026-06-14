@@ -13,11 +13,10 @@
  * - stats: Estadísticas (cuántos libros, último agregado, etc.)
  */
 
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const { DriveService } = require('/opt/nodejs/driveService');
 
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 const driveService = new DriveService();
 
 const MSG_TABLE = process.env.AWS_DYNAMODB_TABLE_MESSAGES;

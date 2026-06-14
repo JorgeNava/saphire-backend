@@ -3,7 +3,5 @@
   "version": "1.0.0",
   "description": "Lambda para búsqueda full-text en notas",
   "main": "index.js",
-  "dependencies": {
-    "aws-sdk": "^2.1490.0"
-  }
+  "dependencies": {}
 }

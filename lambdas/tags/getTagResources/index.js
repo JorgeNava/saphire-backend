@@ -8,8 +8,7 @@
  * curl -X GET https://{api-id}.execute-api.{region}.amazonaws.com/tags/{tagId}/resources?userId=user123
  */
 
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: process.env.AWS_REGION });
+const { docClient } = require("/opt/nodejs/awsCompat");
 
 const TAGS_TABLE = process.env.AWS_DYNAMODB_TABLE_TAGS;
 const THOUGHTS_TABLE = process.env.AWS_DYNAMODB_TABLE_THOUGHTS;
